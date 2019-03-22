@@ -28,13 +28,13 @@
                                      :key="column.prop+'_'+columnIndex+'_'+index"
                                      :width="column.width?(column.width=='auto'?'':column.width):80"
                                      :prop="column.prop"
-                                     v-if="column.viewHandler?column.viewHandler(column,$parent.queryParam,$parent.readonly):true"
+                                     v-if="column.viewHandler?column.viewHandler(column,$parent.queryParam,$parent.readonly,context):true"
                                      :label="column.label">
                         <template slot-scope="scope">
-                                <span    v-if="column.type==null||column.type==''" @click="column['click']&&column['click'](scope.row,column,$event)">
-                                    <span v-if="column.html" v-html="column['columnHandler']&&typeof column.columnHandler=='function'?column.columnHandler(scope.row[column.prop],scope.row,column):column.columnHandler"></span>
+                                <span    v-if="column.type==null||column.type==''" @click="column['click']&&column['click'](scope.row,column,$event,context)">
+                                    <span v-if="column.html" v-html="column['columnHandler']&&typeof column.columnHandler=='function'?column.columnHandler(scope.row[column.prop],scope.row,column,context):column.columnHandler"></span>
                                     <span v-else="column.html">
-                                        {{column["columnHandler"]&&typeof column.columnHandler=="function"?column.columnHandler(scope.row[column.prop],scope.row):scope.row[column.prop]}}
+                                        {{column["columnHandler"]&&typeof column.columnHandler=="function"?column.columnHandler(scope.row[column.prop],scope.row,context):scope.row[column.prop]}}
                                     </span>
                                 </span>
                             <input   v-if="column.type=='input'"        @keyup.enter="column['enter']&&column['enter']($event,scope.row,column)" @blur="column['blur']&&column['blur']($event,scope.row,column)" style="line-height: 30px;width: 100%;" v-model="scope.row[column.prop]"  @change="column['change']&&column['change']($event,scope.row,column)" />
@@ -57,18 +57,18 @@
                             <div class="operateBtnContainer">
                                 <label
                                         :for="'checkbox_'+scope.row.id+operate.prop"
-                                        :style="scope.row[operate.prop+'Check']?operate.checkedStyle:operate.style"
+                                        :style="scope.row[operate.prop+'Check']?operate.checkedStyle:(operate.styleHandler&&operate.styleHandler(scope.row[operate.prop],scope.row)||operate.style)"
                                         v-if="
-                                       operate.viewHandler&&operate.viewHandler(operate,scope.row,$parent.queryParam,$parent.readonly)||
+                                       operate.viewHandler&&operate.viewHandler(operate,scope.row,$parent.queryParam,$parent.readonly,context)||
                                        operate.viewHandler==null
                                    "
                                         v-for="(operate,operatIndex) in tableListConfig.operator.column"
                                         :key="operate.prop+'_'+operate.label+operatIndex+'_'+'_labelKey_'+(scope.row.id||scope.row.code)"
                                         :class="[{'operateBtn':true}]"
                                         @click="operate.type!='checkbox'?operateClick(scope.row,operate):''">
-                                    <input type="checkbox" v-if="operate.type=='checkbox'" style="display: none;" :id="'checkbox_'+scope.row.id+operate.prop" v-model="scope.row[operate.prop+'Check']" @click="operate.type=='checkbox'?operateClick(scope.row,operate):''"/>
+                                    <input type="checkbox" v-if="operate.type=='checkbox'" style="display: none;" :id="'checkbox_'+scope.row.id+operate.prop" v-model="scope.row['idCheck']" @change="operate.type=='checkbox'?operateClick(scope.row,operate):''"/>
                                     <span v-if="!operate.viewHandler">{{(!scope.row[operate.prop+'Check'])?operate.label:(operate.cancleLabel||'取消')}}{{operate.map&&operate.map[scope.row[operate.prop]]}}</span>
-                                    <span v-if="operate.viewHandler">{{operate.viewHandler(operate,scope.row,$parent.queryParam,$parent.readonly)}}</span>
+                                    <span v-if="operate.viewHandler">{{operate.viewHandler(operate,scope.row,$parent.queryParam,$parent.readonly,context)}}</span>
                                 </label>
                             </div>
                         </template>
@@ -104,6 +104,8 @@
                     dataList:[]
                 },
                 readonly:{},
+                context:null,
+                backendService:backendService
             }
         },
         methods:{
@@ -126,9 +128,6 @@
 
                 let submitParam=JSON.parse(JSON.stringify(that.$parent.queryParam));
                     submitParam.pageSize=(arrtsConfig.tableListConfig.pager.pageSize||that.queryParam.pageSize);
-
-
-                    //console.log("submitParam",submitParam,submitParam.timeRange)
 
                 if(submitParam.timeRange){
                     submitParam["startTime"]=that.$parent.queryParam.timeRange[0]==""?'':that.$parent.queryParam.timeRange[0];
@@ -369,8 +368,10 @@
         },
         created:function () {
             let that=this;
+            this.context=that;
             this.tableListConfig=this.$attrs.tableListConfig;
-            that.readonly=this.$attrs.readData||{};
+            let readonly=this.$attrs.readData||{};
+            that.readonly=readonly;
             if(!this.tableListConfig.url) return;
             if(this.tableListConfig.operator&&this.tableListConfig.operator.column){
                 this.hasCheckBox=this.tableListConfig.operator.column.filter(item=>item.type=='checkbox');

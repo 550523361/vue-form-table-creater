@@ -3,21 +3,49 @@
         <div class="searchContainer" >
             <div class="elementsContainer">
                 <el-form ref="form" :model="form" :rules="rules" label-width="180px">
-                      <span class="queryElement" :class="{
+                      <span v-for="(groupName,groupIndex) in Object.keys(elementGroup)" :style="groupedStyle(elementGroup[groupName])">
+                          <span class="queryElement" :class="{
                               hidden:queryItem.type=='hidden',
                               tabContainer:queryItem.type=='tab',
                               tableClass:queryItem.type=='communityChoose',
                               switchContainer:queryItem.switchElements,
                               switchElement:queryItem.switchElements
-                            }" v-for="(queryItem,eleIndex) in queryElements"
-                            :key="queryItem.prop+'_'+queryItem.label+'_'+eleIndex"
-                      >
-                            <template  v-if="queryItem.type=='input'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
+                            }" v-for="(queryItem,eleIndex) in elementGroup[groupName]"
+                                :style="queryItem.containerStyle"
+                                :key="queryItem.prop+'_'+queryItem.label+'_'+eleIndex"
+                          >
+                            <template  v-if="queryItem.type=='input'&&elementWatch(queryItem)"  >
+                                <el-form-item :label="queryItem.label" :prop="queryItem.prop">
+                                  <el-col :span="queryItem.span||8">
+                                    <template v-if="queryItem.preText">{{queryItem.preText}}</template>
+                                    <el-input v-if="!(queryItem.readonly||readonly)" :type="queryItem.inputType||''" :style="queryItem.style||{}" :rows="queryItem.rows||1" v-model="form[queryItem.prop]" :disabled="queryItem.readonly||readonly" :placeholder="queryItem.placeholder">
+                                    </el-input>
+                                    <span v-if="queryItem.readonly||readonly" v-html="form[queryItem.prop]"></span>
+                                    <template v-if="queryItem.rightBtn&&!(queryItem.readonly||readonly)"><span @click="queryItem.rightBtnClick(form,queryItem)" v-html="queryItem.rightBtn"></span></template>
+                                    <template v-if="queryItem.subText&&!(queryItem.readonly||readonly)"><span v-html="queryItem.subText"></span></template>
+                                    <div v-if="!(queryItem.readonly||readonly)" style="color: #f00;font-size: 12px;line-height: 20px;">
+                                        {{queryItem.tip}}
+                                    </div>
+                                  </el-col>
+                                </el-form-item>
+                            </template>
+                            <template  v-if="queryItem.type=='cascader'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
                                 return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][form[prop]]!=true
                             }).filter(item=>item==true).length==0:true)"  >
                                 <el-form-item :label="queryItem.label" :prop="queryItem.prop">
                                   <el-col :span="queryItem.span||8">
-                                    <el-input :type="queryItem.inputType||''" :rows="queryItem.rows||1" v-model="form[queryItem.prop]" :disabled="queryItem.readonly||readonly" :placeholder="queryItem.placeholder"></el-input>
+                                    <template v-if="queryItem.preText">{{queryItem.preText}}</template>
+                                    <el-cascader
+                                            expand-trigger="hover"
+                                            :style="queryItem.cascaderStyle||{width:'400px'}"
+                                            :label="queryItem.itemLabel"
+                                            :value="queryItem.itemValue"
+                                            :disabled="queryItem.readonly||readonly"
+                                            :options="queryItem.cascaderOptions"
+                                            v-model="form[queryItem.prop]">
+                                    </el-cascader>
+                                    <template v-if="queryItem.rightBtn"><span @click="queryItem.rightBtnClick" v-html="queryItem.rightBtn"></span></template>
+                                    <template v-if="queryItem.subText"><span v-html="queryItem.subText"></span></template>
                                     <div style="color: #f00;font-size: 12px;line-height: 20px;">
                                         {{queryItem.tip}}
                                     </div>
@@ -42,27 +70,40 @@
                                 return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][form[prop]]!=true
                             }).filter(item=>item==true).length==0:true)"  >
                                 <el-form-item :prop="queryItem.prop" :label="queryItem.label">
-                                  <img :src="form[queryItem.prop]" style="width: 100px;height: 100px;vertical-align: middle;" alt="">
-                                  <el-upload
-                                          class="upload-demo"
-                                          name="file"
-                                          :show-file-list="false"
-                                          action="/api-backend/fileUpload.json"
-                                          :on-change="function(param){
+
+                                  <el-col :span="queryItem.span||8">
+                                      <div v-if="queryItem.imgUploadConfig&&queryItem.imgUploadConfig.notImage">{{form[queryItem.prop]}}</div>
+                                      <img v-else :src="form[queryItem.prop]" style="width: 100px;height: 100px;vertical-align: middle;border:1px solid #eee;display: inline-block;" alt="">
+                                      <el-upload
+                                              class="upload-demo"
+                                              name="file"
+                                              v-if="!readonly"
+                                              :show-file-list="false"
+                                              action="/api-backend/fileUpload.json"
+                                              :on-progress="function(...params){
+                                            return uploadProgress(params,queryItem)
+                                          }"
+                                              :on-error="function(...params){
+                                            return uploadError(params,queryItem)
+                                          }"
+                                              :on-change="function(param){
                                             return onchangeUpload(param,queryItem)
                                           }"
-                                          :disabled="readonly"
-                                          :before-upload="function(file) {
+                                              :style="queryItem.style||{}"
+                                              :disabled="readonly"
+                                              :before-upload="function(file) {
                                             return beforeIconUpload(file,queryItem)
                                           }"
-                                          :on-success="function(response, file, fileList) {
+                                              :on-success="function(response, file, fileList) {
                                             return saveAppSuccess(response, file, fileList,queryItem)
                                           }">
-                                        <el-button size="small" type="primary" v-if="!readonly">点击上传</el-button>
-                                        <div slot="tip" class="el-upload__tip">
-                                            {{queryItem.tip}}
-                                        </div>
-                                  </el-upload>
+                                            <el-button size="small" type="primary" v-if="!readonly">点击上传</el-button>
+                                            <div slot="tip" v-if="!readonly" class="el-upload__tip">
+                                                <div v-html="queryItem.tip"></div>
+                                            </div>
+                                      </el-upload>
+                                  </el-col>
+                                  <template v-if="queryItem.subText&&!(queryItem.readonly||readonly)"><span v-html="queryItem.subText"></span></template>
                                     <!--<el-input v-model="form[queryItem.prop]" style="display: none" placeholder=""></el-input>-->
                                 </el-form-item>
                             </template>
@@ -111,7 +152,7 @@
                                 return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][form[prop]]!=true
                             }).filter(item=>item==true).length==0:true)"  :style="{'margin-top':'10px','padding-right': '10px',width:queryItem.width||'100%',display: 'inline-block'}"> 
                                 <el-form-item :prop="queryItem.prop" :label="queryItem.label"> 
-                                    <choose-btn :config="queryItem" :readData="form"></choose-btn> 
+                                    <choose-btn :config="Object.assign(queryItem,{readonly:readonly})" :readData="form"></choose-btn> 
                                     <span style="display: none"> 
                                         <el-input v-model="form[queryItem.prop]" hidden :placeholder="queryItem.placeholder"></el-input> 
                                     </span> 
@@ -184,14 +225,14 @@
                                 return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][form[prop]]!=true
                             }).filter(item=>item==true).length==0:true)">
                                     <el-form-item :prop="queryItem.prop" :label="queryItem.label" :style="queryItem.style||{}" :class="queryItem.className">
-                                        <div v-html="form[queryItem.prop]" :style="{background: queryItem.background||'#9c9c9c'}"></div>
+                                        <div v-html="queryItem.dataHandler?queryItem.dataHandler(form[queryItem.prop],form):form[queryItem.prop]" :style="{background: queryItem.background||'#9c9c9c'}"></div>
                                     </el-form-item>
                             </template>
                           <template   v-if="queryItem.type=='addImages'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
                                 return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][form[prop]]!=true
                             }).filter(item=>item==true).length==0:true)">
                                     <el-form-item :prop="queryItem.prop" :label="queryItem.label">
-                                        <add-images :config="queryItem.imagesListConfig||{}"></add-images>
+                                        <add-images :config="queryItem"></add-images>
                                     </el-form-item>
                             </template>
                             <template  v-if="queryItem.type=='select'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
@@ -220,57 +261,44 @@
                                 <el-form-item :prop="queryItem.prop" :label="queryItem.label"> 
                                     <el-date-picker
                                             v-model="form[queryItem.prop]"
-                                            type="datetimerange"
+                                            :type="queryItem.dateType||'datetimerange'"
+                                            :disabled="queryItem.readonly||readonly"
                                             :picker-options="queryItem.options"
                                             :range-separator="queryItem.centerLabel||'至'"
                                             :placeholder="queryItem.placeholder||'请选择时间范围'"
-                                            format="yyyy-MM-dd hh:mm:ss"
+                                            :format="queryItem.format||'yyyy-MM-dd hh:mm:ss'"
+                                            @change="data=>{
+                                                form[queryItem.prop]=data.split((queryItem.centerLabel||'至'));
+                                            }"
                                             align="right">
                                     </el-date-picker>
                                 </el-form-item> 
                             </template>
                       </span>
+                      </span>
                         <el-form-item v-if="!$attrs.config.noneSaveBtn">
                             <el-button type="primary" v-if="!readonly" @click="submitForm('form')" :style="$attrs.config.confirmBtnStyle||{width:'220px'}">{{$attrs.config.saveBtnlabel||(form["id"]?"立即更新":'立即创建')}}</el-button>
                             <!--<el-button @click="resetForm('form')">重置</el-button>-->
-                            <el-button @click="cancle" :style="$attrs.config.cancleBtnStyle||{width:'220px'}">取消</el-button>
+                            <el-button @click="cancle" :style="$attrs.config.cancleBtnStyle||{width:'220px'}">{{$attrs.config.cancleBtnlabel||'取消'}}</el-button>
                         </el-form-item>
                 </el-form>
-                <!--{{form}}
-                <hr>
-                {{rules}}-->
             </div>
-            <!--<div class="btnContainer">
-                      <span v-for="queryItem in queryButtons">
-                              <span class=" label_checkbox" v-if="queryItem.type=='search'">
-                                <label class="btn btn-default borderGreen"  @click="queryBtnClick(form,queryItem)">{{queryItem.label}}</label>
-                              </span>
-                              <span class=" label_checkbox"  v-if="queryItem.type=='button'">
-                                  <label :class="['btn','btn-default','borderGreen','el-button&#45;&#45;primary',queryItem.btnClass]" v-if="queryItem.param"  @click="queryBtnClick(form,queryItem)">{{queryItem.label}}</label>
-                                  <label :class="['btn','btn-default','borderGreen','el-button&#45;&#45;primary',queryItem.btnClass]" v-if="!queryItem.param"  @click="queryBtnClick(form,queryItem)">{{queryItem.label}}</label>
-                              </span>
-                      </span>
-            </div>-->
         </div>
     </div>
 </template>
 <script>
     import {mapState} from 'vuex'
-    import backendService from '../../service/remoteService/backendService'
-    import validate from './../../service/validate/validate'
+    import backendService from '../remoteService/backendService'
+    import validate from './../validate/validate'
     import addInput from './addInput'
-    import communityChoose from './communityChoose'
     import chooseBtn from './chooseBtn'
-    import communityPropertyChoose from './communityPropertyChoose'
-    import orderUploadImages from './../orderUploadImages/addImages'
+    import orderUploadImages from './addImages'
 
     export default {
-        name: 'base-from-creater-new',
+        name: 'base-form-creater',
         components:{
             'add-input':addInput,
             'choose-btn':chooseBtn ,
-            'community-choose':communityChoose ,
-            'community-property-choose':communityPropertyChoose,
             'add-images':orderUploadImages
         },
         data(){
@@ -585,7 +613,7 @@
                 let that=this;
                 let successUpload=queryItem.imgUploadConfig&&queryItem.imgUploadConfig.successUpload;
                 if(successUpload&& typeof successUpload == "function"){
-                    let checkResult=successUpload(response,file,queryItem);
+                    let checkResult=successUpload(response,file,queryItem,this.form);
                     if(checkResult){
                         if(checkResult instanceof Promise){
                             checkResult.then(success=>{
@@ -604,22 +632,45 @@
                 })
             },
             onchangeUpload(data,data2,data3){
-                console.log("onchangeUpload",data,data2,data3)
+               // console.log("onchangeUpload",data,data2,data3)
                 this.choosedAppIcon=data;
+            },
+            uploadProgress(...params) {
+                //console.log("params",...params)
+            },
+            uploadError(...params) {
+                //console.log("params",...params);
+                let that=this;
+                that.$nextTick(function(){
+                    that.loading&&that.loading.close();
+                })
+                that.$message({
+                    duration:0,
+                    showClose:true,
+                    type:'error',
+                    message:'都是我不好,刚刚上传失败了,可能包太大可能网不好,请你稍后再重试!!'
+                })
             },
             beforeIconUpload(file,queryItem) {
 
                 let that=this;
-                console.log("beforeIconUpload",file,queryItem)
+                //console.log("beforeIconUpload",file,queryItem)
                 return new Promise(function (resolve,reject) {
                     //console.log(that.choosedAppIcon)
                     let beforeUpload=queryItem.imgUploadConfig&&queryItem.imgUploadConfig.beforeUpload;
+
                     if(beforeUpload&& typeof beforeUpload == "function"){
                         let checkResult=beforeUpload(file,queryItem);
                         if(checkResult){
                             if(checkResult instanceof Promise){
                                 checkResult.then(success=>{
                                     resolve({code:1,msg:'success'})
+                                    that.loading = that.$loading({
+                                        lock: true,
+                                        text: 'Loading',
+                                        spinner: 'el-icon-loading',
+                                        background: 'rgba(0, 0, 0, 0.3)'
+                                    });
                                 },error=>{
                                     that.$msgbox(error.msg);
                                     reject({msg:error.msg});
@@ -633,11 +684,12 @@
                         }
                     }
 
-                    console.log("beforeIconUpload111",file,queryItem)
+                    //console.log("beforeIconUpload111",file,queryItem)
 
-                    if(that.choosedAppIcon!=null){
+
+                    if(that.choosedAppIcon!=null&&(queryItem.imgUploadConfig&&!queryItem.imgUploadConfig.notImage||queryItem.imgUploadConfig==null)){
                         let choosedImage=that.choosedAppIcon;
-                        console.log("beforeIconUpload22",choosedImage)
+                       // console.log("beforeIconUpload22",choosedImage)
 
                         let readResult=new FileReader();
                         readResult.onload=function(data){
@@ -696,12 +748,16 @@
             dataBus(props,data){
                 //console.log("************",props,data)
                 this.form[props.prop]=data&&data.join("||||")||"";
+                if(props.type=='addImages'){
+                    props.data=that.form[item.prop];
+                }
             },
             initPage(param){
                 let that=this;
+
                 let config=this.$attrs.config;
 
-                console.log("*****************initPage*******************")
+                //console.log("*****************initPage*******************")
 
                 that.readonly=config.readonly||false;
                 this.queryElements=config.queryElements;
@@ -726,6 +782,11 @@
                     }
                     if(item.dataBus){
                         item.dataBus=that.dataBus;
+                        if(item.type=='addImages'){
+                            item.imagesListConfig.dataBus=that.dataBus;
+                          //  console.log("that.form[item.prop]   >>>>addImages.>>>>addImages",that.form[item.prop])
+                            //item.imagesListConfig.data=that.form[item.prop];
+                        }
                         // that.$set(that.form,item.propsList,item.default||'');
                     }
                 });
@@ -736,6 +797,40 @@
                         that.$set(that.form,key,formData[key]);
                     })
                 }
+            },
+            groupedStyle(groupElements){
+                let groupStyle=null;
+                groupElements.forEach(item=>{
+                    if(!groupStyle&&item.groupedStyle){
+                        groupStyle=item.groupedStyle;
+                    }
+                })
+                //console.log("groupElements",groupElements)
+                return groupStyle||{border:'1px dashed #eeee',display:'inline-block',width:'80%',marginLeft:'10%',background:'linear-gradient(#67c23a61, #409eff8c)',marginBottom:'0px'};
+            },
+            elementWatch(queryItem){
+                let that=this;
+                if((!queryItem.watch)||Object.keys(queryItem.watch).length==0) return true;//没有观察对象或观察对象没有键值对
+
+                let watchProps=Object.keys(queryItem.watch.watchValue);
+
+                let allCheckResult=watchProps.map(prop=>{
+                    // 如果 观察属性没有配置值 默认展示 {name:null}
+                    // 如果 观察属性map配置值 默认展示 {state:{1:true,2:true,5:true,8:false}}
+                    // 如果 观察属性函数配置值 默认展示 {state:data=>{}}
+                    let propWatchConfig=queryItem.watch.watchValue[prop];
+                    //console.log(prop," _.type(propWatchConfig)",propWatchConfig, _.isMap(propWatchConfig), _.isFunction(propWatchConfig))
+                    if(propWatchConfig){
+                        if(_.isFunction(propWatchConfig)){
+                            return propWatchConfig(prop,that.form,queryItem);
+                        }else{
+                            return propWatchConfig[that.form[prop]]!=true
+                        }
+                    }
+                });
+                console.log(">>11111>>>allCheckResult  ",allCheckResult)
+                return allCheckResult.filter(item=>item==true).length==0
+
             }
         },
         created() {
@@ -757,6 +852,11 @@
             },{
                 deep:true
             })
+        },
+        computed:{
+            elementGroup(){
+                return _.groupBy(this.$attrs.config.queryElements,item=>item.groupedName)
+            }
         }
     }
 </script>
@@ -777,6 +877,27 @@
         width: 1060px;
         display: inline-block;
     }
+    .searchContainer{
+        text-align: left;
+    }
+    .readonlyContainer .searchContainer{
+        margin: 0px 10%;
+        padding: 40px 10px;
+        border: 1px dotted #ecf5ff;
+        border-radius: 5px;
+        text-align: left;
+    }
+    .readonlyContainer .searchContainer .el-form-item{
+        border-bottom: 1px solid #ecf5ff;
+        padding-bottom: 20px;
+    }
+    .readonlyContainer .el-form > div.el-form-item{
+        border-bottom: 0px solid #ecf5ff;
+        padding-top: 50px;
+    }
+    .readonlyContainer .el-form-item__content{
+        color:#909399;
+    }
     .readonlyContainer input[disabled='disabled'][type='text'] {
         background-color: #eef1f6!important;
         border-color: #d1dbe5!important;
@@ -784,6 +905,9 @@
         cursor: not-allowed;
         border: 0px solid #f00!important;
         background: #fff!important;
+    }
+    .readonlyContainer .el-input__suffix,.readonlyContainer .el-upload__tip{
+        display: none!important;
     }
     .readonlyContainer .el-form-item__label{
         font-weight: bold;
@@ -818,6 +942,9 @@
         font-size: 18px;
     }
     .is-disabled .el-icon-caret-top{
+        display: none;
+    }
+    .hideTime input[placeholder="结束时间"]{
         display: none;
     }
 </style>

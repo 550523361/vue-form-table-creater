@@ -119,6 +119,9 @@ function baseValidate(value,rulues,param,remoteService){
         }else if(key=="email"&&!/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/.test(value)){
             error[key]="请输入合法邮箱！";
             break;
+        }else if(key=="version"&&!/^[vV](\d)+(\.\d+)*$/.test(value)){
+            error[key]="版本号不正确 如 v1.2.3";
+            break;
         }else if(key=="url"&&!/(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/.test(value)){
             error[key]="请输入合法地址";
             break;
@@ -373,6 +376,7 @@ const errorMessageMap={
     email:(param)=>param.label+"应该是合法的邮箱地址",
     mobile:(param)=>param.label+"必须为11位手机号码",
     password:(param)=>param.label+"复杂度不够",
+    version:(param)=>param.label+"版本号不正确",
 }
 const validator={validator:baseValidate,errorMessageMap:errorMessageMap}
 export  default validator;

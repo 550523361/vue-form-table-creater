@@ -11,7 +11,7 @@
                     <div :class="{
                                           itemContainer:true,
                                           showItemClass:item.id==showItemId&&showItemId!=''
-                                          }" v-if="item" :style="{
+                                          }" v-if="item&&seq<config.maxNum" :style="{
                                             background:'transparent'
                                           }"
                          v-for="(item,seq) in orderableImageList"
@@ -27,7 +27,7 @@
                 </transition-group>
             </draggable>
         </div>
-        <div class="addBtnContainer" v-if="orderableImageList.length<config.maxNum&&!config.readonly" style="align-self:center;margin-left:0px;font-size: 14px;background: #e4e8f1;text-align: left;">
+        <div :class="config.style||'addBtnContainer'" v-if="orderableImageList.length<config.maxNum&&!config.readonly" style="align-self:center;margin-left:0px;font-size: 14px;text-align: left;">
             <el-upload
                     class="upload-demo"
                     name="file"
@@ -39,10 +39,15 @@
                     :on-success="saveAppSuccess">
                 <el-button size="small" type="primary">批量添加图片</el-button>
                 <div slot="tip" class="el-upload__tip">
-                    ①尺寸要求:1280px*800px,
-                    ②大小要求:500kb以内,
-                    ③格式为jpg,jpeg,png
-                    文件上传较大时，请耐心等待
+                    <div v-if="!config.tip">
+                        ①尺寸要求:1280px*800px,
+                        ②大小要求:500kb以内,
+                        ③格式为jpg,jpeg,png
+                        文件上传较大时，请耐心等待
+                    </div>
+                    <template v-else>
+                        <div v-html="config.tip"></div>
+                    </template>
                 </div>
             </el-upload>
         </div>
@@ -68,6 +73,10 @@
         },
         methods:{
             addItem(frame,seq,url){
+                console.log(frame.length)
+                if(frame.length>=this.config.maxNum){
+                    return;
+                }
                 frame.push({
                     id:url,
                     name:'图片',
@@ -218,6 +227,9 @@
             syncData(){
                 if(this.config.dataBus){
                     if(typeof this.config.dataBus ==="function"){
+                        this.$attrs.config.data=this.orderableImageList.map(item=>{
+                            return item.url;
+                        })
                         this.config.dataBus(this.config,this.orderableImageList.map(item=>{
                             return item.url;
                         }));
@@ -226,11 +238,11 @@
             },
             init(){
                 let config=this.$attrs.config;
-                this.config=config;
+                this.config=config.imagesListConfig;
                 let formData=config.data;
                 if(formData){
                     let orderableImageList=JSON.parse(JSON.stringify(formData));
-                    console.log("orderableImageList",orderableImageList)
+                    //console.log("orderableI--------mageList",orderableImageList)
                     orderableImageList=orderableImageList.map(item=>{
                         return {
                             url:item,
@@ -242,7 +254,7 @@
                     this.$set(this,"orderableImageList",JSON.parse(JSON.stringify(this.orderableImageList)))
                     if(this.config.dataBus){
                         if(typeof this.config.dataBus ==="function"){
-                            this.syncData()
+                            this.syncData("init")
                         }
                     }
                 }
@@ -349,10 +361,11 @@
     }
     .addBtnContainer{
         cursor: pointer;
-        background: #bfcbd9;
+        background: #eee;
         border-radius: 4px;
         padding: 7px 17px;
         color: #fff;
+        width: 60%;
     }
     .operateContainer{
         position: absolute;

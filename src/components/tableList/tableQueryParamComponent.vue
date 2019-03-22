@@ -1,15 +1,15 @@
 <template>
-        <div class="searchContainer" :style="{marginBottom:$attrs.queryConfig.queryElements.filter(item=>item.type=='tab').length==0?'10px':'78px'}">
-            <!--{{watchMap}}-->
-            <div class="elementsContainer">
-              <span class="queryElement" :style="queryItem.style||{}" :class="{hidden:queryItem.type=='hidden',switchElementContainer:queryItem.switchElements,tabContainer1:queryItem.type=='tab',datetimerange:queryItem.type=='datetimerange',tipHtml:queryItem.type=='tipHtml'}" v-for="(queryItem,paramIndex) in $attrs.queryConfig.queryElements" :key="paramIndex+'_'+queryItem.prop+'_query'+queryItem.label">
+    <div :style="$attrs.queryConfig.containerStyle||{}">
+        <div v-for="(groupName,groupElementIndex) in Object.keys(groupedElements)" :style="groupedStyle(groupedElements[groupName])" class="searchContainer" :key="groupElementIndex+'_'+groupName" >
+            <div class="elementsContainer" :style="$attrs.queryConfig.elementsContainer||{}">
+              <span class="queryElement" :style="queryItem.style||{}" :class="{hidden:queryItem.type=='hidden',switchElementContainer:queryItem.switchElements,tabContainer:queryItem.type=='tab',datetimerange:queryItem.type=='datetimerange',tipHtml:queryItem.type=='tipHtml'}" v-for="(queryItem,paramIndex) in  groupedElements[groupName]" :key="paramIndex+'_'+queryItem.prop+'_query'+queryItem.label">
                     <template v-if="queryItem.type=='input'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
                         return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
                     }).filter(item=>item==true).length==0:true)"
                     >
-                        <span class="form-group form-inline "   style="margin-top:10px;padding-right: 10px;">
+                        <span class="form-inline"   style="margin-top:10px;padding-right: 10px;">
                             <span class="queryItemLabel" v-if="queryItem.label">{{queryItem.label}}</span>
-                            <input type="text"   :placeholder="queryItem.placeholder" class="form-control queryParamInput" v-model="queryParam[queryItem.prop]"  @input="changeQueryParam(queryItem)" />
+                            <el-input type="text" style="margin-bottom: 15px;"  :placeholder="queryItem.placeholder"  v-model="queryParam[queryItem.prop]"  @input="changeQueryParam(queryItem)" />
                             <span v-if="queryItem.rightBtn" @click="queryBtnClick(queryParam,queryItem.rightBtn)" class="rightBtnStyle" :style="queryItem.rightBtn.style">
                                 {{queryItem.rightBtn.label||'搜索'}}
                             </span>
@@ -19,17 +19,17 @@
                         return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
                     }).filter(item=>item==true).length==0:true)"
                     >
-                        <span class="form-group form-inline "   style="margin-top:10px;padding-right: 10px;">
+                        <span class="form-inline "   style="margin-top:10px;padding-right: 10px;">
                             <span class="queryItemLabel" v-if="queryItem.label">{{queryItem.label}}</span>
                             <input type="text"    :placeholder="queryItem.placeholder"  :id="queryItem.id"
-                                   class="form-control" name="merchantName" v-model="queryParam[queryItem.prop]">
+                                   class="" v-model="queryParam[queryItem.prop]">
                         </span>
                     </template>
                     <template v-if="queryItem.type=='datetimerange'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
                         return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
                     }).filter(item=>item==true).length==0:true)"
                     >
-                        <span class="form-group form-inline " v-if="queryItem.type=='datetimerange'"  style="margin-top:10px;padding-right: 10px;">
+                        <span class="form-inline " v-if="queryItem.type=='datetimerange'"  style="margin-top:10px;padding-right: 10px;">
                                     <span class="queryItemLabel" v-if="queryItem.label">{{queryItem.label}}</span>
                                     <el-date-picker
                                             v-model="queryParam[queryItem.prop]"
@@ -37,7 +37,10 @@
                                             :picker-options="queryItem.options"
                                             :range-separator="queryItem.centerLabel||'至'"
                                             :placeholder="queryItem.placeholder||'请选择时间范围'"
-                                            format="yyyy-MM-dd hh:mm:ss"
+                                            format="yyyy-MM-dd HH:mm:ss"
+                                            @change="data=>{
+                                                queryParam[queryItem.prop]=data.split((queryItem.centerLabel||'至'))
+                                            }"
                                             align="right"></el-date-picker>
                         </span>
                     </template>
@@ -45,132 +48,92 @@
                         return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
                     }).filter(item=>item==true).length==0:true)"
                     >
-                        <span class="form-group form-inline "   style="margin-top:10px;padding-right: 10px;">
+                        <span class="form-inline "   style="margin-top:10px;padding-right: 10px;">
                             <span class="queryItemLabel" v-if="queryItem.label">{{queryItem.label}}</span>
                             <span  v-for="component in queryItem.components" :key="component.prop+'_query'+queryItem.label+'_'+paramIndex">
-                                <input type="text" class="form-control width170" v-model="queryParam[component.prop]" :placeholder="component.placeholder"
+                                <input type="text" class=" width170" v-model="queryParam[component.prop]" :placeholder="component.placeholder"
                                        :id="component.id" :maxelementid="component.maxelementid" :minelementid="component.minelementid"
                                 >
                                         <span v-if="$index==0">{{queryItem.link}}</span>
                              </span>
                         </span>
                     </template>
-                    <template
-                            v-if="queryItem.type=='select'&&(queryItem.watch&&queryItem.watch.props?JSON.parse(JSON.stringify(queryItem.watch.props)).map(prop=>{
+                    <template v-if="queryItem.type=='select'&&(queryItem.watch&&queryItem.watch.props?JSON.parse(JSON.stringify(queryItem.watch.props)).map(prop=>{
                         if(Object.keys(queryItem.watch.watchValue[prop]).length==0){
                             return false;
                         }
                         return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
                     }).filter(item=>item==true).length==0:true)"
                     >
-                        <span class="form-group form-inline " :class="{switchContainer:queryItem.switchElements}" style="margin-top:10px;padding-right: 10px;">
+                        <span class="form-inline " :class="{switchContainer:queryItem.switchElements}" style="margin-top:10px;padding-right: 10px;">
                                 <span class="queryItemLabel" v-if="queryItem.label">{{queryItem.label}}</span>
                                 <span v-if="!queryItem.dataUrl">
-                                  <el-select    class="form-control width170" v-model="queryParam[queryItem.prop]" filterable  @change="changeQueryParam(queryItem)">
+                                  <el-select    class=" width170" v-model="queryParam[queryItem.prop]" filterable  @change="changeQueryParam(queryItem)">
                                       <el-option value="">{{queryItem.placeholder||'请选择'}}</el-option>
                                       <el-option  v-for="component in queryItem.options" :value="component.value||component.code" :key="component.code+component.value+component.id+'_query'+component.label" :label="component.label||component.name">{{component.label||component.name}}</el-option>
                                   </el-select>
                                 </span>
                                 <span v-if="queryItem.dataUrl">
-                                  <el-select  class="form-control width170" v-model="queryParam[queryItem.prop]" filterable  @change="changeQueryParam(queryItem)">
+                                  <el-select  class=" width170" v-model="queryParam[queryItem.prop]" filterable  @change="changeQueryParam(queryItem)">
                                       <el-option value="">{{queryItem.placeholder||'请选择'}}</el-option>
                                       <el-option v-for="component in dataQuery.query[queryItem.propList]" :key="queryItem.prop+'_select_'+component.id+'_value_'+component.value+'_code_'+component.code" :value="component.code||component.id||component.value" :code="component.id||component.code||component.value" :label="component.label||component.name||component.desc">{{component.name||component.label||component.desc}}</el-option>
                                   </el-select>
                                 </span>
-
-                                    <!--被开关元素控制的元素集合-->
-                                <span v-if="queryItem.switchElements" :class="{switchElement:queryItem.switchElements}">
-                                    <span v-for="queryItemInner in queryItem.switchElements" :key="queryItemInner.prop+'_query'+queryItemInner.label+'_'+paramIndex">
-                                        <span >
-                                            <span class="form-group form-inline " v-if="queryItemInner.type=='input'"  style="margin-top:10px;padding-right: 10px;">
-                                                <span class="queryItemLabel" v-if="queryItemInner.label">{{queryItemInner.label}}</span>
-                                                <input type="text"  :placeholder="queryItemInner.placeholder" class="form-control" name="merchantName" v-model="queryParam[queryItemInner.prop]"  @change="changeQueryParam(queryItemInner)">
-                                            </span>
-                                            <span class="form-group form-inline " v-if="queryItemInner.type=='date'"  style="margin-top:10px;padding-right: 10px;">
-                                                <span class="queryItemLabel" v-if="queryItemInner.label">{{queryItemInner.label}}</span>
-                                                <input type="text"    :placeholder="queryItemInner.placeholder"  :id="queryItemInner.id"  :maxelementid="queryItemInner.maxelementid" minelementid=""  @change="changeQueryParam(queryItemInner)"
-                                                       class="form-control" name="merchantName" v-model="queryParam[queryItemInner.prop]">
-                                            </span>
-                                            <span class="form-group form-inline " v-if="queryItemInner.type=='composite'"  style="margin-top:10px;padding-right: 10px;">
-                                                <span class="queryItemLabel" v-if="queryItemInner.label">{{queryItemInner.label}}</span>
-                                                <span  v-for="component in queryItemInner.components" :key="component.prop+'_query__'+component.label+'_'+paramIndex">
-                                                        <input type="text" class="form-control width170" v-model="queryParam[component.prop]" :placeholder="component.placeholder"  @change="changeQueryParam(queryItemInner)"
-                                                               :id="component.id" :maxelementid="component.maxelementid" :minelementid="component.minelementid"
-                                                        >
-                                                                <span v-if="$index==0">{{queryItem.link}}</span>
-                                                    </span>
-                                            </span>
-                                            <span class="form-group form-inline " v-if="queryItemInner.type=='select'"  style="margin-top:10px;padding-right: 10px;">
-                                                <span v-if="queryParam[queryItem.prop]==queryItemInner.whenSwitchValue">
-                                                    <span class="queryItemLabel" v-if="queryItemInner.label">{{queryItemInner.label}}</span>
-                                                    <span v-if="!queryItemInner.initQuery">
-                                                      <select  class="form-control width170" filterable v-model="queryParam[queryItemInner.prop]" @change="changeQueryParam(queryItemInner)">
-                                                          <option value="">{{queryItemInner.placeholder||'请选择'}}</option>
-                                                          <option  v-for="component in dataQuery.query[queryItemInner.propList]" :value="component.id" :key="queryItem.code+queryItem.value+queryItem.id+'_query'+queryItem.label">{{component.name}}</option>
-                                                      </select>
-                                                    </span>
-                                                    <span v-if="queryItemInner.initQuery">
-                                                      自动查询
-                                                      <select class="form-control width170" v-model="queryParam[queryItemInner.prop]" filterable  @change="changeQueryParam(queryItemInner)">
-                                                          <option value="">{{queryItemInner.placeholder||'请选择'}}</option>
-                                                          <option v-for="component in  queryItemInner.options" :value="component.value" :key="component.code+component.value+component.id+'_query'+component.label">{{component.key}}</option>
-                                                      </select>
-                                                    </span>
-                                                </span>
-                                            </span>
-                                        </span>
-                                    </span>
-                                </span>
                             </span>
                     </template>
-
                     <template  v-if="queryItem.type=='tipHtml'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
                         return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
                     }).filter(item=>item==true).length==0:true)"
                     >
-                        <span class="form-group form-inline "  style="margin-top:10px;padding-right: 10px;">
-                                <div v-for="tip in queryItem.items" v-html="tip"></div>
+                        <span class="form-inline "  :style="queryItem.style||{'margin-top':'10px','padding-right': '10px'}">
+                                <div v-for="(tip,indexTip) in queryItem.items" @click="(!tip.items)&&queryBtnClick(queryParam,queryItem,indexTip)" :key="indexTip+'_'+queryItem.prop">
+                                    <template v-if="tip.items" >
+                                        <span v-for="(innerItem,innerItemIndex) in tip.items" @click="queryBtnClick(queryParam,queryItem,indexTip,innerItemIndex)" :key="'innerItemIndex'+'_'+innerItemIndex" v-html="innerItem"></span>
+                                    </template>
+                                    <span  v-else v-html="tip"></span>
+                                </div>
                         </span>
                     </template>
+                    <template  v-if="queryItem.type=='tab'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
+                        return queryItem.watch.watchValue[prop]&&queryItem.watch.watchValue[prop][queryParam[prop]]!=true
+                    }).filter(item=>item==true).length==0:true)"
+                    >
+                            <ul class="myTabsContainer">
+                                <li v-for="(component,labelIndex) in !(queryItem.dataUrl&&queryItem.initQuery)?queryItem.components:dataQuery.query[queryItem.propList]" :key="component.code+component.prop+component.id+'__query'+component.label">
+                                    <input type="radio" :name="component.prop" :id="component.prop+'_'+labelIndex" :value="component.value||component.code"
+                                           @change="queryBtnClick(queryParam,queryItem,component)"
+                                           v-model="queryParam[queryItem.prop]">
+                                    <label :for="component.prop+'_'+labelIndex" :class="['btn',{checkedStyle:queryParam[queryItem.prop]==component.value}]">{{component.label||component.desc||component.name}}</label>
+                                </li>
+                            </ul>
+                    </template>
               </span>
-              <span v-for="(queryItem,paramIndex) in $attrs.queryConfig.queryElements" v-if="queryItem.type=='search'||queryItem.type=='button'" :style="queryItem.style||{}" v-bind:hidden="queryItem.hidden" :key="queryItem.prop+'_query'+queryItem.label+'_'+paramIndex"   @click="queryBtnClick(queryParam,queryItem)">
+              <span v-for="(queryItem,paramIndex) in groupedElements[groupName]" v-if="queryItem.type=='button'||queryItem.type=='search'" :style="queryItem.style||{paddingTop:'10px'}" v-bind:hidden="queryItem.hidden" :key="queryItem.prop+'_query'+queryItem.label+'_'+paramIndex"   @click="queryBtnClick(queryParam,queryItem)">
                   <template v-if="queryItem.viewHandler">
                       <template v-if="!queryItem.html">
                           <span v-if="queryItem.type!='search'" :class="['btn','btn-default','el-button el-button--default',queryItem.type=='search'?'el-button el-button--info':'',queryItem.btnClass]">
-                                {{queryItem.viewHandler(queryItem,$route.params,queryParam)}}
+                                {{queryItem.viewHandler(queryItem,$route.params,queryParam,context)}}
                           </span>
                       </template>
                       <template v-else="!queryItem.html">
-                          <span v-if="queryItem.type!='search'" v-html="queryItem.viewHandler(queryItem,$route.params,queryParam)"></span>
+                          <span v-if="queryItem.type!='search'" v-html="queryItem.viewHandler(queryItem,$route.params,queryParam,context)"></span>
                       </template>
                   </template>
                   <template v-else="queryItem.viewHandler">
-                      <span v-if="queryItem.type!='search'" :class="['btn','btn-default','el-button el-button--default',queryItem.type=='search'?'el-button el-button--info':'',queryItem.btnClass]">
+                      <span v-if="queryItem.type!='search'" :style="queryItem.style||{}" :class="['btn','btn-default','el-button el-button--default',queryItem.type=='search'?'el-button el-button--info':'',queryItem.btnClass]">
                             {{queryItem.label}}
                       </span>
                       <el-button v-else="queryItem.type=='search'" type="primary" icon="search">搜索</el-button>
                   </template>
               </span>
-              <span class="tabContainer" v-if="tabElement.type=='tab'" v-for="(tabElement,paramIndex) in $attrs.queryConfig.queryElements" :key="tabElement.prop+'_query_tab'+tabElement.label+'_'+paramIndex">
-                    <span class="form-group form-inline "   style="margin-top:0px;background: rgba(252,252,252,0);width: 100%;margin-bottom: 0px;margin-left: 0px">
-                        <span class="label_checkbox" style="transform: translateX(-10px);">
-                            <ul class="mytableTest" style="display: inline-block;border-bottom:1px solid #333">
-                                <li v-for="(component,labelIndex) in !(tabElement.dataUrl&&tabElement.initQuery)?tabElement.components:dataQuery.query[tabElement.propList]" :key="component.code+component.prop+component.id+'__query'+component.label">
-                                    <input type="radio" :name="component.prop" :id="component.prop+'_'+labelIndex" :value="component.value||component.code"
-                                           @click="changeQueryParam(tabElement,component)"
-                                           v-model="queryParam[tabElement.prop]">
-                                    <label :for="component.prop+'_'+labelIndex" class="btn">{{component.label||component.desc||component.name}}</label>
-                                </li>
-                            </ul>
-                        </span>
-                    </span>
-                </span>
             </div>
         </div>
+    </div>
 </template>
 
 <script>
     import backendService from '../remoteService/backendService'
+    import _ from 'lodash'
 
     export default {
         name: "mytablequery",
@@ -185,7 +148,9 @@
                 },
                 readonly:{},
                 queryParam:{},
-                watchMap:{}
+                watchMap:{},
+                /*tabItem:{prop:'null'},*/
+                context:null,
             }
         },
         methods:{
@@ -455,19 +420,27 @@
                 return Promise.all(promiseList);
             },
 
-            queryBtnClick(params,btn){
+            queryBtnClick(params,btn,...otherParams){
                 let that=this;
-                console.log("queryBtnClick",params,btn);
+                console.log("queryBtnClick",params,btn,...otherParams);
                 if(!params.timeRange){
                     params.timeRange=['',''];
                 }
 
+                if(btn.type=='tab'&&btn.needReinit){
+                    //this.initQueryElement();
+                    this.$nextTick(data=>{
+                        console.log("queryBtnClick",params,btn);
+                        this.reInitQueryElement();
+                    })
+                }
+
                 if(btn.click&& typeof btn.click=="function"){
                     if(btn.check&& typeof btn.check=="function"){
-                        let checkResult=btn.check(params,btn,this.dataQuery.query);
+                        let checkResult=btn.check(params,btn,this.dataQuery.query,...otherParams);
                         if(checkResult instanceof Promise){
                             checkResult.then(success=>{
-                                btn.click(success.params,btn);
+                                btn.click(success.params,btn,...otherParams);
                             },error=>{
                                 btn.errorTip&&typeof btn.errorTip === "function"&&btn.errorTip()
                                 console.log("验证失败 不搜索!调用错误提示方法")
@@ -475,7 +448,7 @@
                             })
                         }else if(checkResult){
                             //console.log("checkResult",checkResult)
-                            btn.click(checkResult.params,btn,this.dataQuery.query);
+                            btn.click(checkResult.params,btn,this.dataQuery.query,...otherParams);
                         }else{
                             console.error("验证没有返回,请返回 {params:参数对象} 或 Promise对象")
                             that.$message({
@@ -484,17 +457,17 @@
                             })
                         }
                     }else{
-                        btn.click(params,btn);
+                        btn.click(params,btn,...otherParams);
                     }
 
                 }else{
                     if(this.$attrs.clickConfig&& typeof this.$attrs.clickConfig=="function"){
                         if(btn.check&& typeof btn.check=="function"){
-                            let checkResult=btn.check(params,btn);
+                            let checkResult=btn.check(params,btn,...otherParams);
                             if(checkResult instanceof Promise){
                                 checkResult.then(success=>{
                                     this.$parent.$emit(this.$attrs.queryConfig.listenerId,success.params)
-                                    this.$attrs.clickConfig(success.params,btn,that.queryParam);
+                                    this.$attrs.clickConfig(success.params,btn,that.queryParam,...otherParams);
                                 },error=>{
                                     if(btn.errorTip&&typeof btn.errorTip === "function"){
                                         btn.errorTip()
@@ -507,7 +480,7 @@
                             }else if(checkResult){
                                 console.log("checkResult***************",checkResult.params)
                                 this.$parent.$emit(this.$attrs.queryConfig.listenerId,checkResult.params)
-                                this.$attrs.clickConfig(checkResult.params,btn,that.queryParam);
+                                this.$attrs.clickConfig(checkResult.params,btn,that.queryParam,...otherParams);
                             }else{
                                 console.error("验证没有返回,请返回 {params:参数对象} 或 Promise对象")
                                 that.$message({
@@ -517,7 +490,7 @@
                             }
                         }else{
                             //this.$parent.$emit(this.$attrs.queryConfig.listenerId,params,btn)
-                            this.$attrs.clickConfig(params,btn,that.queryParam)
+                            this.$attrs.clickConfig(params,btn,that.queryParam,...otherParams)
                         }
                     }
                 }
@@ -543,6 +516,16 @@
                         that.restoreQueryParam();
                     })
                 },{deep:true})
+            },
+            groupedStyle(groupElements){
+                let groupStyle=null;
+                groupElements.forEach(item=>{
+                    if(!groupStyle&&item.groupedStyle){
+                        groupStyle=item.groupedStyle;
+                    }
+                })
+                console.log("groupElements",groupElements)
+                return groupStyle||{};
             }
         },
         created:function () {
@@ -554,6 +537,15 @@
                 //this.initPage();
             }
         },
+        computed:{
+            groupedElements(){
+                return _.groupBy(this.$attrs.queryConfig.queryElements,item=>item.groupName)||{}
+            },
+            tabItem(){
+                return _.find(this.$attrs.queryConfig.queryElements,item=>item.type=='tabs')
+            }
+        }
+
     }
 </script>
 
@@ -580,10 +572,6 @@
 
     input ,select,.queryParamInput,.el-select,.datetimerange{
         margin-bottom: 15px;
-
-    }
-    input ,select,.queryParamInput,.el-select{
-        width: 200px;
     }
 
     label.btn,.btn,.el-button {
@@ -604,13 +592,6 @@
         border: 0px solid #fff;
         color: #48576a;
     }
-
-    .btnContainer{
-        padding: 10px;
-        width: 220px;
-        flex-shrink: 0;
-        flex-grow: 0;
-    }
     .searchContainer{
         display: flex;
         flex-direction: row;
@@ -618,7 +599,8 @@
         align-items: center;
         background: rgba(0,0,0,.00);
         padding: 10px;
-        margin-bottom: 10px;
+        border: 0px solid #f00;
+        background: linear-gradient(180deg, #6cb4ff, rgb(255, 255, 255))
     }
     .elementsContainer{
         display: flex;
@@ -640,26 +622,19 @@
         display: none!important;
         background: #f00;
     }
-    .switchElementContainer{
-        width: 100%!important;
-    }
+
     .tabContainer{
-        width: 100%;
         display: flex;
         flex-direction: row;
         justify-content: flex-start;
         align-items: flex-start;
-        position: absolute;
-        bottom: 0px;
-        transform: translateY(52px);
+        width: 100%;
     }
     .tabContainer ul{
-         width: 100%;
          display: flex;
          flex-direction: row;
          justify-content: flex-start;
          align-items: flex-start;
-         transform: translateY(21px);
      }
     .tabContainer ul li{
         display: inline-block;
@@ -677,7 +652,7 @@
     .tabContainer ul li:nth-child(1) label{
         display: inline-block;
         padding: 10px 35px;
-        border-left: 1px solid #1f2d3d;
+        border-left: 0px solid #1f2d3d;
     }
     .tabContainer > span{
         display: inline-block;
@@ -689,6 +664,8 @@
     .tabContainer .label_checkbox{
         display: inline-block;
         width: 100%;
+        text-align:left;
+        background: #f0a;
     }
     .tabContainer .form-inline{
         width: 100%;
@@ -699,7 +676,7 @@
         border-radius: 0px!important;
         border-top-left-radius: 5px!important;
         border-top-right-radius: 5px!important;
-
+        border: 1px solid #1f2d3d;
         border-bottom: 1px solid #fff;
         transform: translateY(1px);
     }
@@ -711,17 +688,42 @@
         border-radius: 0px;
         border-top-left-radius: 6px;
         border-top-right-radius: 6px;
-        border-right: 1px solid #1f2d3d;
-        border-top: 1px solid #1f2d3d;
+        border-right: 0px solid #1f2d3d;
+        border-top: 0px solid #1f2d3d;
         transform: translateY(1px);
     }
     .queryItemLabel{
         display: inline-block;
-        min-width: 100px;
         text-align: right;
+        flex-grow: 0;
+        flex-shrink: 0;
+        margin-bottom: 15px;
+
     }
 
     .rightBtnStyle{
         background: #00a0e9;display: inline-block;padding: 5px 10px;color: #fff;cursor: pointer;border-radius: 5px;
+    }
+
+    .form-inline{
+        display: flex;
+        width: auto;
+        border: 0px solid #f0a;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .myTabsContainer{
+        display: inline-block;
+        border-bottom:0px solid #333;
+        width: 100%;
+        text-align: left;
+        padding-left: 0px;
+        margin: 0px;
+    }
+    .checkedStyle{
+        color: green!important;
+        background: #fff;
     }
 </style>

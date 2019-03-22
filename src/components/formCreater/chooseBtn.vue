@@ -3,7 +3,7 @@
         width:config.width||'800px'
     }" :class="{'tableNoBorder':true}">
             <el-button type="info" v-if="config.isPop&&!config.readonly"  style="margin-bottom: 20px;" @click="addCommunity">{{config.chooseBtnLabel}}</el-button>
-            <div class="chooseResultContainer">
+            <div class="chooseResultContainer" v-if="!config.chooseResultViewHandler">
                         <span class="addInputItemGroupContainer" v-for="(group,index) in Object.keys(choosedResultArray)">
                             <span v-if="group!='undefined'" style="font-weight: bold;margin-right: 10px;min-width: 50px;text-align: right;display: inline-block;">{{group=="undefined"?'':group}}</span>
                             <span class="addInputItemContainer" v-if="item.name"  v-for="(item,index) in choosedResultArray[group]">
@@ -12,16 +12,35 @@
                             </span>
                         </span>
             </div>
+            <div class="chooseResultContainer" v-if="config.chooseResultViewHandler">
+                <div v-html="config.chooseResultViewHandler(choosedResultArray,config.readonly)"></div>
+            </div>
 
             <el-dialog v-if="config.isPop"
                 :title="config.popTitle||''"
                 :visible.sync="confirmRefund"
-                width="30%"
+                :width="config.width||'40%'"
                 :before-close="handleClose">
-                <list-table v-if="!config.readonly && showSearch" :config="{tableListConfig,queryConfig,clickHandler,form:'propertyMerchant'}" :readData="readonly" ref="tableList"></list-table>
+                <list-table v-if="!config.readonly && showSearch" :config="{tableListConfig,queryConfig,clickHandler,form:'propertyMerchant'}" :readData="readonly" ref="tableList">
+                    <div class="chooseResultContainer" slot="beforeTable" v-if="config.popChooseViewHandler">
+                        <div v-html="config.popChooseViewHandler(choosedResultArray)"></div>
+                    </div>
+                    <div slot="afterTable">
+                        <div style="text-align: center;">
+                            <el-button @click="handleClose">保存</el-button>
+                        </div>
+
+                    </div>
+                </list-table>
             </el-dialog>
             <div v-else="config.isPop">
-                <list-table v-if="!config.readonly && showSearch" :config="{tableListConfig,queryConfig,clickHandler,form:'propertyMerchant'}" :readData="readonly" ref="tableList"></list-table>
+                <list-table v-if="!config.readonly && showSearch" :config="{tableListConfig,queryConfig,clickHandler,form:'propertyMerchant'}" :readData="readonly" ref="tableList">
+                    <div class="chooseResultContainer" slot="beforeTable" v-if="config.popChooseViewHandler">
+                        <div v-html="config.popChooseViewHandler(choosedResultArray)"></div>
+                    </div>
+                    <div slot="afterTable">
+                    </div>
+                </list-table>
             </div>
 
     </div>
@@ -83,11 +102,11 @@
                 }
             },
             clickHandler(param,btnInfo,chooseData){
-                console.log("index --99000- clickHandler",param,btnInfo,chooseData)
+                //console.log("index --99000- clickHandler",param,btnInfo,chooseData)
                 this.$nextTick()
             },
             clickChooseCommunityHandler(param,btnInfo,chooseData){
-                console.log("index --99000- clickChooseCommunityHandler",param,btnInfo,chooseData)
+
                 let that=this;
                 // this.chooseAllClick()
                 this.$nextTick(function () {
@@ -96,27 +115,27 @@
                         console.log("deleteResult",deleteResult)
                         if(deleteResult instanceof Promise){
                             deleteResult.then(success=>{
-                                console.log("deleteResult success",success)
+                                //console.log("deleteResult success",success)
                                 if(success){
                                     param.idCheck=true;
                                 }
                             },error=>{
-                                console.log("deleteResult error",error)
+                                //console.log("deleteResult error",error)
                             })
                         }
                     }else{
                         let addResult=that.addItem(param);
-                        console.log("addResult",addResult)
+                        //console.log("addResult",addResult)
                         if(addResult instanceof Promise){
                             addResult.then(success=>{
-                                console.log("addResult success",success)
+                                //console.log("addResult success",success)
                                 if(success){
                                     param.idCheck=true;
                                     that.chooseResult[param.id]=param;
                                     that.syncData();
                                 }
                             },error=>{
-                                console.log("addResult error",error)
+                                //console.log("addResult error",error)
                             })
 
                         }else{
@@ -334,6 +353,7 @@
             tableListConfig.stripe=that.config.tableListConfig.stripe;
             tableListConfig.showHeader=that.config.tableListConfig.showHeader;
             tableListConfig.colums=that.config.tableListConfig.colums||[];
+            tableListConfig.method=this.$attrs.config.tableListConfig.method||'post';
             this.queryConfig.queryElements=config.tableListConfig.queryElements||[];
             //this.queryConfig.queryElements[5].check=this.check;
             tableListConfig.operator=(config.tableListConfig.operator&&config.tableListConfig.operator.length>0?config.tableListConfig.operator:false)||{width:100,column:[
@@ -345,9 +365,6 @@
             tableListConfig.pagerDataHelper=that.pagerDataHelper;
             tableListConfig.chooseAllClick=config.tableListConfig.chooseAllClick||that.chooseAllClick;
             that.tableListConfig=Object.assign(that.tableListConfig,tableListConfig);
-
-
-
         }
     }
 </script>

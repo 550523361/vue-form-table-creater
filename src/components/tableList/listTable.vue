@@ -1,7 +1,10 @@
 <template>
-  <div class="list">
+  <div class="list2">
+    <slot name="beforeQuery"></slot>
     <query-param :queryConfig="queryConfig" :readData="readonly" :clickConfig="clickConfig" ref="queryParam"></query-param>
+    <slot name="beforeTable"></slot>
     <my-table :tableListConfig="tableListConfig" :readData="readonly" ref="tableList"></my-table>
+    <slot name="afterTable"></slot>
   </div>
 </template>
 <script>
@@ -38,7 +41,7 @@
           return{
               readonly:{},
               tableListConfig:{listenerId:listenerId,watchProp:'',colums:[],operator:{width:200,colums:[]},url:'',splitTables:1,showHeader:true,stripe:true},
-              queryConfig:{listenerId:listenerId,queryElements:[]},
+              queryConfig:{listenerId:listenerId,queryElements:[],containerStyle:{}},
           }
       },
       methods:{
@@ -55,7 +58,10 @@
               if(config.pagerDataHelper&& typeof config.pagerDataHelper == "function"){
                   return config.pagerDataHelper(param,...params);
               }
-              param.content.map(item=>{return item;})
+              param.content.map(item=>{
+                  //console.log("idCheck==>",item.idCheck)
+                  return item;
+              })
               return param;
           },
           clickConfig(param,btn,...params){
@@ -118,13 +124,7 @@
           let config=that.$attrs.config;
           that.readonly=this.$attrs.readData||{};
           that.tableListConfig=Object.assign(that.tableListConfig,config.tableListConfig);
-          /*if(this.tableListConfig&&this.tableListConfig.watchProp){
-              let watchProp="readonly."+this.tableListConfig.watchProp;
-              that.$watch(watchProp,function (newData,oldData) {
-                  that.tableListConfig=Object.assign(that.tableListConfig,that.$attrs.config.tableListConfig);
-                  that.readonly=Object.assign(that.readonly,that.$attrs.config.readonly);
-              })
-          }*/
+
           that.queryConfig=Object.assign(that.queryConfig,config.queryConfig);
           that.$on("readonlyDataChanged",function (newValue) {
               that.readonly=newValue;
@@ -133,6 +133,7 @@
               that.tableListConfig=Object.assign(that.tableListConfig,newData.tableListConfig);
               that.readonly=Object.assign(that.readonly,that.$attrs.config.readonly);
               that.queryConfig.queryElements=newData.queryConfig.queryElements;
+              that.queryConfig.containerStyle=newData.queryConfig.containerStyle;
           },{
               deep:true
           })

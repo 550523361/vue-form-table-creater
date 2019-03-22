@@ -46,10 +46,9 @@
     </div>
 </template>
 <script>
-    import {mapState} from 'vuex'
     import baseTableConfig from './../tableList/TabListConfig'
     import listTable from './../tableList/listTable'
-    import _ from "underscore";
+    import _ from "lodash";
 
     let tableListConfig=JSON.parse(JSON.stringify(baseTableConfig));
     let baseBtnStyle=tableListConfig.baseBtnStyle;
@@ -64,12 +63,9 @@
         },
         data(){
             return{
-                confirmRefundForm:{},
-                rulesResetPassword:{},
                 confirmRefund:false,
                 showSearch:true,
                 config:{},
-                form:{},
                 items:[],
                 readonly:{},
                 tableListConfig:{showHeader:true,stripe:true},
@@ -81,9 +77,6 @@
         methods:{
             addCommunity(){
                 this.confirmRefund=true;
-            },
-            resetPassword(){
-
             },
             handleClose(){
                 this.confirmRefund=false;
@@ -299,8 +292,6 @@
             //console.log("readonly",this.$attrs)
             that.$watch("readonly",function (newData,oldData) {
                 console.log("chooseBtn newData,oldData",newData,oldData,that.$attrs)
-                //that.readonly.propertyId=newData.propertyId;
-                //that.$refs.tableList.$on("readonlyDataChanged",newData)
             },{
                 deep:true
             })

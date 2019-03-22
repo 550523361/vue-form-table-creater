@@ -1,6 +1,7 @@
 <template>
     <div :style="$attrs.queryConfig.containerStyle||{}">
         <div v-for="(groupName,groupElementIndex) in Object.keys(groupedElements)" :style="groupedStyle(groupedElements[groupName])" class="searchContainer" :key="groupElementIndex+'_'+groupName" >
+            {{groupName}}
             <div class="elementsContainer" :style="$attrs.queryConfig.elementsContainer||{}">
               <span class="queryElement" :style="queryItem.style||{}" :class="{hidden:queryItem.type=='hidden',switchElementContainer:queryItem.switchElements,tabContainer:queryItem.type=='tab',datetimerange:queryItem.type=='datetimerange',tipHtml:queryItem.type=='tipHtml'}" v-for="(queryItem,paramIndex) in  groupedElements[groupName]" :key="paramIndex+'_'+queryItem.prop+'_query'+queryItem.label">
                     <template v-if="queryItem.type=='input'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
@@ -136,10 +137,7 @@
     import _ from 'lodash'
 
     export default {
-        name: "mytablequery",
-        props:{
-
-        },
+        name: "table-query-param",
         data:function(){
             return {
                 queryElements:[],
@@ -149,7 +147,6 @@
                 readonly:{},
                 queryParam:{},
                 watchMap:{},
-                /*tabItem:{prop:'null'},*/
                 context:null,
             }
         },
@@ -540,9 +537,6 @@
         computed:{
             groupedElements(){
                 return _.groupBy(this.$attrs.queryConfig.queryElements,item=>item.groupName)||{}
-            },
-            tabItem(){
-                return _.find(this.$attrs.queryConfig.queryElements,item=>item.type=='tabs')
             }
         }
 

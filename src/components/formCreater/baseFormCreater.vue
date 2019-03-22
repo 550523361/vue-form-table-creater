@@ -1,5 +1,5 @@
 <template :key="formKey">
-    <div :class="{readonlyContainer:readonly}">
+    <div :class="{readonlyContainer:readonly,editorModule:$attrs.config.editorModule||false}">
         <div class="searchContainer" >
             <div class="elementsContainer">
                 <el-form ref="form" :model="form" :rules="rules" label-width="180px">
@@ -11,9 +11,14 @@
                               switchContainer:queryItem.switchElements,
                               switchElement:queryItem.switchElements
                             }" v-for="(queryItem,eleIndex) in elementGroup[groupName]"
-                                :style="queryItem.containerStyle"
+                                :style="queryItem.containerStyle||{position: 'relative'}"
                                 :key="queryItem.prop+'_'+queryItem.label+'_'+eleIndex"
                           >
+                            <span class="editorOperateContainer">
+                                <span @click="$attrs.config.editorFormHandler('del',queryItem,eleIndex)" style="color: #f00;" title="删除当前元素">删除</span>
+                                <span v-if="eleIndex" @click="$attrs.config.editorFormHandler('up',queryItem,eleIndex)" title="上移动一个位置">上移动</span>
+                                <span v-if="eleIndex!=elementGroup[groupName].length-1" @click="$attrs.config.editorFormHandler('down',queryItem,eleIndex)" title="下移动一个位置">下移动</span>
+                            </span>
                             <template  v-if="queryItem.type=='input'&&elementWatch(queryItem)"  >
                                 <el-form-item :label="queryItem.label" :prop="queryItem.prop">
                                   <el-col :span="queryItem.span||8">
@@ -287,7 +292,6 @@
     </div>
 </template>
 <script>
-    import {mapState} from 'vuex'
     import backendService from '../remoteService/backendService'
     import validate from './../validate/validate'
     import addInput from './addInput'
@@ -315,6 +319,7 @@
                 form:{},
                 queryButtons:[],
                 readonly:false,
+                editorModule:false,
             }
         },
         methods:{
@@ -946,5 +951,26 @@
     }
     .hideTime input[placeholder="结束时间"]{
         display: none;
+    }
+    .editorOperateContainer{
+        display: none;
+    }
+    .editorModule:hover .editorOperateContainer{
+        display: flex;
+        position: absolute;
+        right: 10px;
+        text-align: right;
+        width: 200px;
+        height: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        z-index: 1;
+    }
+
+    .editorOperateContainer>span{
+        cursor: pointer;
+        font-size: 13px;
     }
 </style>

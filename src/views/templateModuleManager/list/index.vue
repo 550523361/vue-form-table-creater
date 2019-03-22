@@ -3,9 +3,11 @@
     <div class="content">
       <div class="list">
         <div style="padding:0px 10px;background: #fff;">
-          <list-table :config="{tableListConfig,queryConfig,clickHandler,form:'merchant',readonly:readonly}" ref="tableList"></list-table>
-          <add-element v-show="moduleConfig.editable" :config="{dataBus:dataBus}"></add-element>
-          <div style="margin-top: 20px;" v-show="moduleConfig.editable">
+          <list-table v-if="moduleConfig.editable!='create-form-element'" :config="{tableListConfig,queryConfig,clickHandler,form:'merchant',readonly:readonly}" ref="tableList"></list-table>
+          <form-creater v-if="formCreateConfig.queryElements.length>0" :config="formCreateConfig" ref="formCreater"></form-creater>
+          <add-element v-if="moduleConfig.editable=='add-element'" :config="{dataBus:dataBus}"></add-element>
+          <create-form-element v-if="moduleConfig.editable == 'create-form-element'" :config="{dataBus:dataBus}"></create-form-element>
+          <div style="margin-top: 20px;" v-if="moduleConfig.editable=='add-element'">
             <textarea style="width: 100%;" rows="35" readonly v-model="JSON.stringify(config,null,4)"/>
             <!--<button @click="downLoad()">导出内容</button>-->
           </div>
@@ -20,6 +22,7 @@
   import listTable from '../../../components/tableList/listTable'
   import baseTableConfig from '../../../components/tableList/TabListConfig'
   import addQueryElement from '../../../components/formCreater/addQueryElement'
+  import createFormElement from '../../../components/formCreater/createFormElement'
   import {formatDate} from '../../../components/format/format'
   import validate from './../../../components/validate/validate'
   import formCreater from './../../../components/formCreater/baseFormCreater'
@@ -36,6 +39,7 @@
       components:{
           'list-table':listTable,
           'add-element':addQueryElement,
+          'create-form-element':createFormElement,
           'form-creater':formCreater,
       },
       data(){
@@ -43,10 +47,21 @@
               formatUtil:formatDate,
               tableListConfig:{colums:[],splitTables:1,operator:{width:200,colums:[]},url:'',selection:false},
               queryConfig:{queryElements:[]},
-              moduleConfig:{editable:false,menuConfig:[]},
+              moduleConfig:{editable:'',menuConfig:[]},
               chooseIds:[],
               readonly:{},
               validate:validate,
+
+              formCreateConfig:{
+                  queryElements:[],
+                  cancle:this.cancle,
+                  cancleBtnStyle:{
+                      display:'none'
+                  },
+                  saveBtnlabel:'保存信息',
+                  editorFormHandler:this.editorFormHandler,
+                  editorModule:true
+              },
           }
       },
       methods:{
@@ -187,7 +202,7 @@
               return this.moduleConfig.pagerDataHelper&&this.moduleConfig.pagerDataHelper(param)||param;
           },
           errorDataHelper(param){
-              //console.log("pagerDataHelper********",param);
+              console.log("pagerDataHelper***>>>>>>>>>>>>>*****",param);
               param.content.map(item=>{return item;})
               return this.moduleConfig.errorDataHelper&&this.moduleConfig.errorDataHelper(param)||param;
           },
@@ -313,17 +328,13 @@
 
               that.queryConfig.queryElements=queryElements;
               that.queryConfig.containerStyle=moduleConfig.containerStyle;
-              //console.log("*****===>>"+this.$route.params.moduleName+"-->",queryElements.forEach(item=>console.log(item.label)))
-              //that.queryConfig.queryElements=Object.assign(that.queryConfig.queryElements,queryElements);
               moduleConfig.operator.column.map(item=>{
-                  //console.log(item)
                   if(!item.click){
                       if(item.confirmDel){
                           item.click=that.deleteRowHandler;
                       }else{
                           item.click=that.clickHandler;
                       }
-
                   }
                   if(item.viewHandler==true){
                       item.viewHandler=(btnInfo,rowData,queryParam,otherData)=>{
@@ -343,17 +354,8 @@
               tableListConfig.clickConfig=that.clickConfig;
 
               that.tableListConfig=tableListConfig;
-              //that.tableListConfig=Object.assign(that.tableListConfig,tableListConfig);
 
               this.initColumn();
-
-              /*this.$watch("moduleConfig.columns",function (newData,oldData) {
-                  this.tableListConfig.colums=newData;
-              },{
-                  deep:true
-              })
-
-              that.moduleConfig.menuConfig=JSON.parse(JSON.stringify(moduleConfig.menuConfig));*/
 
               this.$watch("moduleConfig.menuConfig",function (newData,oldData) {
                   this.moduleConfig.menuConfig=newData;
@@ -362,14 +364,13 @@
                   deep:true
               })
 
-              this.$watch("tableListConfig.colums",function (newData,oldData) {
+              this.$watch("tableListConfig.columns",function (newData,oldData) {
                   this.initColumn(newData,oldData);
               },{
                   deep:true
               })
               this.$watch("moduleConfig.queryElements",function (newData,oldData) {
                   this.queryConfig.queryElements=newData;
-                  //console.log("moduleConfig.queryElements<<<<<<<<<--8888--",this.queryConfig.queryElements.forEach(item=>console.log(item.label)))
               },{
                   deep:true
               })
@@ -383,7 +384,6 @@
                           }else{
                               item.click=that.clickHandler;
                           }
-
                       }
                       if(item.viewHandler==true){
                           item.viewHandler=(btnInfo,rowData,queryParam,otherData)=>{
@@ -459,10 +459,28 @@
           },
           getService(){
               return backendService;
-          }
+          },
+          editorFormHandler(...params){
+              //console.log("defaultHandler",params)
+              this.moduleConfig.editorFormHandler?this.moduleConfig.editorFormHandler(this,...params):''
+          },
       },
       created(){
           this.initPage();
+
+      },
+      mounted(){
+          /*var editor = ace.edit("ace");
+          editor.setTheme("ace/theme/twilight");
+          editor.session.setMode("ace/mode/javascript");
+          editor.setOptions({
+              enableBasicAutocompletion: true,
+              enableSnippets: true,
+              enableLiveAutocompletion: false
+          });
+          editor.setValue(`
+            ${JSON.stringify(this.moduleConfig,null,4)}
+          `)*/
       },
       watch:{
           '$route'(to,from){
@@ -473,8 +491,6 @@
       computed:{
           config:function () {
               let copyData=JSON.parse(JSON.stringify(this.tableListConfig));
-              copyData.columns=copyData.colums;
-              delete copyData.colums;
               return Object.assign(copyData,this.queryConfig)
           },
           choosedIdMap:function () {

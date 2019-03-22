@@ -673,8 +673,12 @@
     }
 </style>
 <style>
+    .addElement{
+        text-align: left;
+    }
     .addElement .el-radio{
         min-width: 165px;
         margin-right: 10px;
+
     }
 </style>

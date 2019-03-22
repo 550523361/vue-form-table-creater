@@ -12,8 +12,6 @@
   import tableQueryParamComponent from './tableQueryParamComponent'
   import Vue from 'vue'
 
-  let listenerId="listenerId"+Math.ceil(Math.random()*10000);
-
   Vue.component('async-element', function (resolve, reject) {
           resolve({
               template: `<div style=''>
@@ -32,7 +30,7 @@
 
 
   export default {
-      name: 'listTable',
+      name: 'list-table',
       components:{
           'my-table':tableListComponent,
           'query-param':tableQueryParamComponent
@@ -40,8 +38,8 @@
       data(){
           return{
               readonly:{},
-              tableListConfig:{listenerId:listenerId,watchProp:'',colums:[],operator:{width:200,colums:[]},url:'',splitTables:1,showHeader:true,stripe:true},
-              queryConfig:{listenerId:listenerId,queryElements:[],containerStyle:{}},
+              tableListConfig:{watchProp:'',colums:[],operator:{width:200,colums:[]},url:'',splitTables:1,showHeader:true,stripe:true},
+              queryConfig:{queryElements:[],containerStyle:{}},
           }
       },
       methods:{

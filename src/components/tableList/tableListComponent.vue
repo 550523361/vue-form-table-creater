@@ -92,7 +92,7 @@
     import backendService from '../remoteService/backendService'
 
     export default {
-        name: "mytable",
+        name: "table-list",
         props:{
         },
         data:function(){

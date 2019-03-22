@@ -1290,20 +1290,8 @@ function getConfig() {
                 }
             },
         },
-        'createTableList': { //创建列表功能页面
+        createTableList: { //创建列表功能页面
             queryElements: [
-                /*{
-                    label:'添加查询条件',
-                    type:'button',
-                },
-                {
-                    label:'添加显示列',
-                    type:'button',
-                },
-                {
-                    label:'添加列操作按钮',
-                    type:'button',
-                },*/
                 {
                     label: "注意:",
                     type: "tipHtml",
@@ -1313,7 +1301,7 @@ function getConfig() {
 
                 }
             ],
-            editable: true,
+            editable: 'add-element',
             url: "/mall/order/queryListPage.json",
             selection: true,
             columns: [
@@ -1326,11 +1314,9 @@ function getConfig() {
                 ]
             },
             pagerDataHelper: data => {
-                console.log("****pagerDataHelper***", data);
                 return data; //[{name:12,id:1212}]
             },
             errorDataHelper: data => {
-                console.log("****errorDataHelper***", data);
                 return { content: [{ name: 12, id: 1212, url: 'http://img-steward-test.goodaa.com.cn/592a56e356da4361a9e313298f1b5e21.jpg' }] }
             },
             clickHandler: (context, rowData, btnInfo) => {
@@ -1438,6 +1424,112 @@ function getConfig() {
                         context.$refs.tableList.fresh();
                     })
 
+                }
+            }
+        },
+        createForm: { //创建列表功能页面
+            formElements: [
+                 
+            ],
+            queryElements: [
+                {
+                    label: "注意:",
+                    type: "tipHtml",
+                    items: [
+                        `<div style="color: #fff;background: #0056aa;padding: 5px;">列表创建</div>`
+                    ]
+
+                }
+            ],
+            editable: 'create-form-element',
+            url: "/mall/order/queryListPage.json",
+            selection: true,
+            columns: [
+                /* {"prop":"test",label:"ID",width:'auto'},*/
+            ],
+            operator: {
+                width: 320,
+                column: [
+                    //{"prop":"state",label:"",map:{2:'关闭',3:'开启'},viewHandler:true}
+                ]
+            },
+            pagerDataHelper: data => {
+                return data; //[{name:12,id:1212}]
+            },
+            errorDataHelper: data => {
+                return { content: [{ name: 12, id: 1212, url: 'http://img-steward-test.goodaa.com.cn/592a56e356da4361a9e313298f1b5e21.jpg' }] }
+            },
+            clickHandler: (context, rowData, btnInfo) => {
+                console.log(btnInfo, context)
+                if (btnInfo.label == '添加查询条件') {
+                    //context.$router.push("/merchant/change/"+rowData.merchantId);
+                    context.queryConfig.queryElements.push({
+                        label: '订单状态' + Math.ceil(Math.random() * 1000),
+                        prop: 'prop' + Math.ceil(Math.random() * 1000),
+                        defaultValue: 'defaultValue' + Math.ceil(Math.random() * 1000),
+                        type: 'select',
+                        options: [{
+                            value: '1',
+                            code: 1,
+                            label: '全部'
+                        },
+                            {
+                                value: '2',
+                                code: 2,
+                                label: '已完成'
+                            },
+                            {
+                                value: '3',
+                                code: 3,
+                                label: '已关闭'
+                            },
+                        ]
+                    })
+                } else if (btnInfo.label == '添加显示列') {
+                    //context.$router.push("/merchant/info/"+rowData.merchantId);
+                    context.moduleConfig.columns.push({
+                        label: 'column' + Math.ceil(Math.random() * 1000),
+                        prop: 'prop' + Math.ceil(Math.random() * 1000),
+                        defaultValue: 'defaultValue' + Math.ceil(Math.random() * 1000),
+                        width: 180
+                    })
+                } else if (btnInfo.label == '添加列操作按钮') {
+                    //context.$router.push("/merchant/info/"+rowData.merchantId);
+                    context.moduleConfig.operator.column.push({
+                        prop: "id" + Math.ceil(Math.random() * 10),
+                        label: "修改" + Math.ceil(Math.random() * 10),
+                        style: Object.assign(JSON.parse(JSON.stringify(baseBtnStyle)), { backgroundColor: '#bfcbd9', color: '#fff' })
+                    })
+
+                    context.moduleConfig.operator.width = context.moduleConfig.operator.column.length > 4 ? 400 : context.moduleConfig.operator.column.length * 100;
+                }
+            },
+            handleClose: null,
+            clickConfig: null,
+            enterHandler(...params) {
+                console.log("moduleConfig enterHandler", ...params)
+            },
+            editorFormHandler(...params){
+                let context=params[0];
+                let operateType=params[1];
+                let elementItem=params[2];
+                let elementSeq=params[3];
+                //console.log(context,operateType,elementItem,elementSeq)
+                if(operateType=="del"){
+                    context.formCreateConfig.queryElements.splice(elementSeq,1);
+                }else if(operateType=="up"){
+                    let deleteElement=context.formCreateConfig.queryElements.splice(elementSeq,1)[0];
+                    context.formCreateConfig.queryElements.splice(elementSeq-1,0,deleteElement)
+                }else if(operateType=="down"){
+                    let deleteElement=context.formCreateConfig.queryElements.splice(elementSeq,1)[0];
+                    context.formCreateConfig.queryElements.splice(elementSeq+1,0,deleteElement)
+                }
+                
+            },
+            dataBus: (context, configInfo, elementInfo, elementTypeInfo) => {
+                //console.log("*******configInfo,elementInfo*****",context,configInfo,elementInfo,elementTypeInfo);
+                if (elementTypeInfo.functionType =="inputElement") {
+                    context.formCreateConfig.queryElements.push(elementInfo);
                 }
             }
         },

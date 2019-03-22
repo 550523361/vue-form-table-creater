@@ -37,12 +37,9 @@
                     :on-change="onchangeUpload"
                     :before-upload="beforeIconUpload"
                     :on-success="saveAppSuccess">
-                <el-button size="small" type="primary">批量添加图片</el-button>
+                <el-button size="small" type="primary">批量上传图片</el-button>
                 <div slot="tip" class="el-upload__tip">
                     <div v-if="!config.tip">
-                        ①尺寸要求:1280px*800px,
-                        ②大小要求:500kb以内,
-                        ③格式为jpg,jpeg,png
                         文件上传较大时，请耐心等待
                     </div>
                     <template v-else>

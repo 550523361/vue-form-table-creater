@@ -254,7 +254,7 @@
               that.queryConfig.queryElements=queryElements;
               //console.log("*****===>>"+this.$route.params.moduleName+"-->",queryElements.forEach(item=>console.log(item.label)))
               //that.queryConfig.queryElements=Object.assign(that.queryConfig.queryElements,queryElements);
-              moduleConfig.operator.column.map(item=>{
+              moduleConfig.operator.columns.map(item=>{
                   //console.log(item)
                   if(!item.click){
                       if(item.confirmDel){
@@ -305,8 +305,8 @@
                   deep:true
               })
 
-              this.$watch("moduleConfig.operator.column",function (newData,oldData) {
-                  moduleConfig.operator.column.map(item=>{
+              this.$watch("moduleConfig.operator.columns",function (newData,oldData) {
+                  moduleConfig.operator.columns.map(item=>{
                       //console.log(item)
                       if(!item.click){
                           if(item.confirmDel){

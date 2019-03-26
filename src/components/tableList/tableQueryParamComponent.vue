@@ -1,7 +1,6 @@
 <template>
     <div :style="$attrs.queryConfig.containerStyle||{}">
         <div v-for="(groupName,groupElementIndex) in Object.keys(groupedElements)" :style="groupedStyle(groupedElements[groupName])" class="searchContainer" :key="groupElementIndex+'_'+groupName" >
-            {{groupName}}
             <div class="elementsContainer" :style="$attrs.queryConfig.elementsContainer||{}">
               <span class="queryElement" :style="queryItem.style||{}" :class="{hidden:queryItem.type=='hidden',switchElementContainer:queryItem.switchElements,tabContainer:queryItem.type=='tab',datetimerange:queryItem.type=='datetimerange',tipHtml:queryItem.type=='tipHtml'}" v-for="(queryItem,paramIndex) in  groupedElements[groupName]" :key="paramIndex+'_'+queryItem.prop+'_query'+queryItem.label">
                     <template v-if="queryItem.type=='input'&&(queryItem.watch&&queryItem.watch.props?queryItem.watch.props.map(prop=>{
@@ -476,7 +475,7 @@
                                 })
                             }else if(checkResult){
                                 console.log("checkResult***************",checkResult.params)
-                                this.$parent.$emit(this.$attrs.queryConfig.listenerId,checkResult.params)
+                                //this.$parent.$emit(this.$attrs.queryConfig.listenerId,checkResult.params)
                                 this.$attrs.clickConfig(checkResult.params,btn,that.queryParam,...otherParams);
                             }else{
                                 console.error("验证没有返回,请返回 {params:参数对象} 或 Promise对象")

@@ -676,7 +676,7 @@ function getConfig() {
             readonly: true,
             "operator": {
                 "width": 200,
-                "column": [{
+                "columns": [{
                     "label": "查看",
                     "type": "button",
                     "placeholder": "",
@@ -1293,14 +1293,6 @@ function getConfig() {
         },
         createTable: { //创建列表功能页面
             queryElements: [
-                {
-                    label: "注意:",
-                    type: "tipHtml",
-                    items: [
-                        `<div style="color: #fff;background: #0056aa;padding: 5px;">列表创建</div>`
-                    ]
-
-                }
             ],
             editable: 'add-element',
             url: "/mall/order/queryListPage.json",
@@ -1310,7 +1302,7 @@ function getConfig() {
             ],
             operator: {
                 width: 320,
-                column: [
+                columns: [
                     //{"prop":"state",label:"",map:{2:'关闭',3:'开启'},viewHandler:true}
                 ]
             },
@@ -1374,12 +1366,24 @@ function getConfig() {
                 //console.log("*******configInfo,elementInfo*****",context,configInfo,elementInfo,elementTypeInfo);
                 if (elementTypeInfo.functionType == 'operators') {
                     elementInfo.style = Object.assign(JSON.parse(JSON.stringify(baseBtnStyle)), { backgroundColor: '#bfcbd9', color: '#fff' });
-                    context.moduleConfig.operator.column.push(elementInfo)
-                    context.moduleConfig.operator.width = context.moduleConfig.operator.column.length > 4 ? 600 : context.moduleConfig.operator.column.length * 100;
+                    context.moduleConfig.operator.columns.push(elementInfo)
+                    context.moduleConfig.operator.width = context.moduleConfig.operator.columns.length > 4 ? 600 : context.moduleConfig.operator.columns.length * 100;
                 } else if (elementTypeInfo.functionType == 'queryParams') {
                     if (elementInfo.check) {
-                        eval("var checkFunc=" + elementInfo.check);
-                        elementInfo.check = checkFunc;
+                        //eval("var checkFunc=" + elementInfo.check);
+                        //console.log(elementInfo.check)
+                        elementInfo.check = eval(elementInfo.check);
+                        //console.log("elementInfo.check",checkFunc())
+                    }
+                    Object.keys(elementInfo).map(key=>{
+                        if(key.indexOf("Handler")!=-1){
+                            elementInfo[key]=eval(elementInfo[key]);
+                        }
+                    })
+                    if (elementInfo.check) {
+                        //eval("var checkFunc=" + elementInfo.check);
+                        //console.log(elementInfo.check)
+                        elementInfo.check = eval(elementInfo.check);
                         //console.log("elementInfo.check",checkFunc())
                     }
                     context.queryConfig.queryElements.push(elementInfo);
@@ -1534,6 +1538,7 @@ function getConfig() {
                     Object.keys(copyElementInfo).map(prop=>{
                         if(prop.indexOf("Handler")!=-1){
                             copyElementInfo[prop]=eval(copyElementInfo[prop])
+                            console.log("prop",prop)
                         }
                     })
                     context.formCreateConfig.queryElements.push(copyElementInfo);

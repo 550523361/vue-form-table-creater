@@ -1,7 +1,10 @@
+<!--
+    选择按钮 显示为一个弹窗或者一个分页列表 选择结果通过dataBus同步出去 通过简单的配置可以做到快速完成数据展示和选择,支持分页选择功能支持选择后自定义显示
+-->
 <template>
     <div :style="{
         width:config.width||'800px'
-    }" :class="{'tableNoBorder':true}">
+    }" :class="{'tableNoBorder':false}">
             <el-button type="info" v-if="config.isPop&&!config.readonly"  style="margin-bottom: 20px;" @click="addCommunity">{{config.chooseBtnLabel}}</el-button>
             <div class="chooseResultContainer" v-if="!config.chooseResultViewHandler">
                         <span class="addInputItemGroupContainer" v-for="(group,index) in Object.keys(choosedResultArray)">
@@ -33,11 +36,8 @@
                     </div>
                 </list-table>
             </el-dialog>
-            <div v-else="config.isPop">
+            <div v-else>
                 <list-table v-if="!config.readonly && showSearch" :config="{tableListConfig,queryConfig,clickHandler,form:'propertyMerchant'}" :readData="readonly" ref="tableList">
-                    <div class="chooseResultContainer" slot="beforeTable" v-if="config.popChooseViewHandler">
-                        <div v-html="config.popChooseViewHandler(choosedResultArray)"></div>
-                    </div>
                     <div slot="afterTable">
                     </div>
                 </list-table>
@@ -68,7 +68,7 @@
                 config:{},
                 items:[],
                 readonly:{},
-                tableListConfig:{showHeader:true,stripe:true},
+                tableListConfig:{showHeader:true,stripe:true,operator:{width:'800px',columns:[]},pager:{query:{pageSize:5}}},
                 queryConfig:{},
                 chooseResult:{},
                 catchListData:{}
@@ -138,19 +138,6 @@
 
                     }
                 })
-
-            },
-            clickUseBtnHandler(param,btnInfo){
-                //console.log("index --99000- clickUseBtnHandler",param,btnInfo)
-                let oldStyle=btnInfo.style;
-                if(!btnInfo[btnInfo.prop+"Check"]){
-                    btnInfo.rowStyle=null;
-                }else{
-                    btnInfo.rowStyle=Object.assign(JSON.parse(JSON.stringify(oldStyle||{})),{
-                        backgroundColor:"#f0f",
-                        color:'#fff'
-                    })
-                }
 
             },
             clickConfig(param){
@@ -338,16 +325,20 @@
                 })
             }
 
+
             //tableListConfig.selection=true;
             tableListConfig.headerClick=that.headerClick;
             tableListConfig.url=that.config.tableListConfig.url;
             tableListConfig.stripe=that.config.tableListConfig.stripe;
             tableListConfig.showHeader=that.config.tableListConfig.showHeader;
-            tableListConfig.colums=that.config.tableListConfig.colums||[];
+            tableListConfig.columns=that.config.tableListConfig.columns||[];
             tableListConfig.method=this.$attrs.config.tableListConfig.method||'post';
+            tableListConfig.selection=this.$attrs.config.tableListConfig.selection||false;
+            if(this.$attrs.config.tableListConfig.pager){
+                tableListConfig.pager.pageSize=this.$attrs.config.tableListConfig.pager.pageSize;
+            }
             this.queryConfig.queryElements=config.tableListConfig.queryElements||[];
-            //this.queryConfig.queryElements[5].check=this.check;
-            tableListConfig.operator=(config.tableListConfig.operator&&config.tableListConfig.operator.length>0?config.tableListConfig.operator:false)||{width:100,column:[
+            tableListConfig.operator=(config.tableListConfig.operator&&config.tableListConfig.operator.length>0?config.tableListConfig.operator:false)||{width:100,columns:[
                     {"prop":"id",label:"选择",type:'checkbox',click:that.clickChooseCommunityHandler,
                         style:Object.assign(JSON.parse(JSON.stringify(baseBtnStyle)),{backgroundColor:'#97a8be',color:'#fff'}),
                         checkedStyle:Object.assign(JSON.parse(JSON.stringify(baseBtnStyle)),{backgroundColor:'#000',color:'#fff'}),

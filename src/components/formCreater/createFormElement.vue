@@ -518,6 +518,70 @@
                             },null,4)
                         },
                     },
+                    buttons:{
+                        name:'各种按钮',
+                        chooseBtn:{
+                            name:'选择按钮',
+                            options:JSON.stringify({
+                                label:'选择应用',
+                                type:'chooseBtn',
+                                placeholder:'',
+                                default:'',
+                                isPop:false,
+                                readonly:false,
+                                span:24,
+                                width:'800px',
+                                dataBus:true,
+                                chooseBtnLabel:'选择应用',
+                                chooseResultViewHandler:`(choosedResultArray,readonly)=>{
+                                   // console.log(choosedResultArray)
+                                    return _.flatten(Object.values(choosedResultArray)).map(item=>'<el-button type="info">'+item.applicationName+'</el-button>').join(",")
+                                }`,
+                                popChooseViewHandler:`(choosedResultArray,readonly)=>{
+                                   // console.log(choosedResultArray)
+                                    return _.flatten(Object.values(choosedResultArray)).map(item=>'<el-button type="info">'+item.applicationName+'</el-button>').join(",")
+                                }`,
+                                tableListConfig:{
+                                   url:'/thirdparty/upgrade/getUpgradeInfoList.json',
+                                   queryElements:[
+                                       {type:'input',label:'应用名称',prop:'applicationName'},
+                                       {type:'search',label:'应用名称',}
+                                   ],
+                                   selection:false,
+                                   pager:{
+                                       pageSize:5
+                                   },
+                                   columns:[
+                                       {
+                                           label:'名称',
+                                           prop:'applicationName',
+                                           width:'auto'
+                                       },
+                                       {
+                                           label:'版本号',
+                                           prop:'appVersion',
+                                           width:'200px'
+                                       },
+                                       {
+                                           label:'图标',
+                                           prop:'appIconUrl',
+                                           type:'img',
+                                           width:'200px'
+                                       }
+                                   ],
+                                   operator:{
+                                       columns:[
+                                           {
+                                               label:'选择',
+                                               type:'button'
+                                           }
+                                       ]
+                                   }
+                                },
+                                prop:'appIds',
+                            },null,4)
+                        },
+                    },
                 },
                 templateHtml:`
                                     {

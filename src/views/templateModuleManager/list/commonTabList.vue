@@ -34,7 +34,7 @@
       data(){
           return{
               formatUtil:formatDate,
-              tableListConfig:{colums:[],splitTables:1,operator:{width:200,colums:[]},url:'',selection:false,noBorder:false},
+              tableListConfig:{columns:[],splitTables:1,operator:{width:200,columns:[]},url:'',selection:false,noBorder:false},
               queryConfig:{queryElements:[]},
               moduleConfig:{editable:false,menuConfig:[]},
               chooseIds:[],
@@ -213,12 +213,12 @@
           initColumn(newData,oldData){
               let that=this;
               let columnWidthAuto=0;
-              this.tableListConfig.colums.map((column,index)=>{
+              this.tableListConfig.columns.map((column,index)=>{
                   if(column.width=="auto"){
                       ++columnWidthAuto;
                   }
 
-                  if(index==(that.tableListConfig.colums.length-1)&&columnWidthAuto==0){
+                  if(index==(that.tableListConfig.columns.length-1)&&columnWidthAuto==0){
                       column.width="auto";
                   }
                   if(column.addEventListener){
@@ -295,7 +295,7 @@
 
               tableListConfig.query=queryParam;
               //console.log("----====>>>>",tableListConfig.query,queryParam)
-              tableListConfig.colums=moduleConfig.columns;
+              tableListConfig.columns=moduleConfig.columns;
 
               queryElements.map(item=>{
                   if(queryParam[item.prop]!=undefined&&queryParam[item.prop]!=""){
@@ -307,7 +307,7 @@
               that.queryConfig.queryElements=queryElements;
               //console.log("*****===>>"+this.$route.params.moduleName+"-->",queryElements.forEach(item=>console.log(item.label)))
               //that.queryConfig.queryElements=Object.assign(that.queryConfig.queryElements,queryElements);
-              moduleConfig.operator.column.map(item=>{
+              moduleConfig.operator.columns.map(item=>{
                   //console.log(item)
                   if(!item.click){
                       if(item.confirmDel){
@@ -340,7 +340,7 @@
               this.initColumn();
 
               /*this.$watch("moduleConfig.columns",function (newData,oldData) {
-                  this.tableListConfig.colums=newData;
+                  this.tableListConfig.columns=newData;
               },{
                   deep:true
               })
@@ -354,7 +354,7 @@
                   deep:true
               })
 
-              this.$watch("tableListConfig.colums",function (newData,oldData) {
+              this.$watch("tableListConfig.columns",function (newData,oldData) {
                   this.initColumn(newData,oldData);
               },{
                   deep:true
@@ -366,8 +366,8 @@
                   deep:true
               })
 
-              this.$watch("moduleConfig.operator.column",function (newData,oldData) {
-                  moduleConfig.operator.column.map(item=>{
+              this.$watch("moduleConfig.operator.columns",function (newData,oldData) {
+                  moduleConfig.operator.columns.map(item=>{
                       //console.log(item)
                       if(!item.click){
                           if(item.confirmDel){
@@ -465,8 +465,7 @@
       computed:{
           config:function () {
               let copyData=JSON.parse(JSON.stringify(this.tableListConfig));
-              copyData.columns=copyData.colums;
-              delete copyData.colums;
+              copyData.columns=copyData.columns;
               return Object.assign(copyData,this.queryConfig)
           },
           choosedIdMap:function () {

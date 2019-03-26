@@ -351,12 +351,33 @@
                                 }
                             },null ,4)
                         },
+                        syncButton:{
+                            name:'异步按钮',
+                            options:JSON.stringify({
+                                label:'异步按钮依据参数动态切换',
+                                type:'button',
+                                exportBtn:true,
+                                param:true,
+                                html:true,
+                                viewHandler:`
+                                    (queryItem,params,queryParam,context)=>{
+                                        return queryParam.key
+
+                                    }
+                                `,
+                                url:"/mall/order/exportOrderList",
+                                exportsParam:{
+                                    id:"",
+                                    name:"",
+                                }
+                            },null ,4)
+                        },
                         search:{
                             name:'搜索按钮',
                             options:JSON.stringify({
                                 label:'搜索',
                                 type:'search',
-                                check: function (queryParam) {
+                                check: `(queryParam)=>{
                                     console.log("queryParamqueryParamqueryParam",queryParam);
                                     if(queryParam){
                                         var communityName=queryParam.communityName||"";
@@ -367,7 +388,7 @@
 
                                     }
                                     return true;
-                                }.toString()
+                                }`
                             },null ,4)
                         }
                     },

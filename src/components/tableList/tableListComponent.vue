@@ -24,7 +24,7 @@
                                      :selectable="filterMethod">
 
                     </el-table-column>
-                    <el-table-column v-for="(column,columnIndex) in tableListConfig.colums"
+                    <el-table-column v-for="(column,columnIndex) in tableListConfig.columns"
                                      :key="column.prop+'_'+columnIndex+'_'+index"
                                      :width="column.width?(column.width=='auto'?'':column.width):80"
                                      :prop="column.prop"
@@ -52,7 +52,7 @@
                             </span>
                         </template>
                     </el-table-column>
-                    <el-table-column fixed="right" :width="tableListConfig.operator.width?(tableListConfig.operator.width=='auto'?'':tableListConfig.operator.width):80"  v-if="tableListConfig.operator.column&&tableListConfig.operator.column.length>0" :label="tableListConfig.operator.label||'操作'" :key="tableListConfig.url">
+                    <el-table-column fixed="right" :width="tableListConfig.operator.width?(tableListConfig.operator.width=='auto'?'':tableListConfig.operator.width):80"  v-if="tableListConfig.operator.columns&&tableListConfig.operator.columns.length>0" :label="tableListConfig.operator.label||'操作'" :key="tableListConfig.url">
                         <template slot-scope="scope">
                             <div class="operateBtnContainer">
                                 <label
@@ -62,7 +62,7 @@
                                        operate.viewHandler&&operate.viewHandler(operate,scope.row,$parent.queryParam,$parent.readonly,context)||
                                        operate.viewHandler==null
                                    "
-                                        v-for="(operate,operatIndex) in tableListConfig.operator.column"
+                                        v-for="(operate,operatIndex) in tableListConfig.operator.columns"
                                         :key="operate.prop+'_'+operate.label+operatIndex+'_'+'_labelKey_'+(scope.row.id||scope.row.code)"
                                         :class="[{'operateBtn':true}]"
                                         @click="operate.type!='checkbox'?operateClick(scope.row,operate):''">
@@ -98,7 +98,7 @@
         data:function(){
             return {
                 queryParam:{pageNum:1,pageSize:20},
-                tableListConfig:{colums:[],watchProp:'',operator:{width:200,column:[]},url:'',splitTables:1,stripe:true,showHeader:true},
+                tableListConfig:{columns:[],watchProp:'',operator:{width:200,columns:[]},url:'',splitTables:1,stripe:true,showHeader:true},
                 hasCheckBox:[],
                 tableDataSource:{
                     dataList:[]
@@ -373,8 +373,8 @@
             let readonly=this.$attrs.readData||{};
             that.readonly=readonly;
             if(!this.tableListConfig.url) return;
-            if(this.tableListConfig.operator&&this.tableListConfig.operator.column){
-                this.hasCheckBox=this.tableListConfig.operator.column.filter(item=>item.type=='checkbox');
+            if(this.tableListConfig.operator&&this.tableListConfig.operator.columns){
+                this.hasCheckBox=this.tableListConfig.operator.columns.filter(item=>item.type=='checkbox');
             }
             that.$watch("$attrs.tableListConfig",function (newValue,oldValue) {
                 this.tableListConfig=newValue;

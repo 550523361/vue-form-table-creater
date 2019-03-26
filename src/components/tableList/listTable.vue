@@ -38,7 +38,7 @@
       data(){
           return{
               readonly:{},
-              tableListConfig:{watchProp:'',colums:[],operator:{width:200,colums:[]},url:'',splitTables:1,showHeader:true,stripe:true},
+              tableListConfig:{watchProp:'',columns:[],operator:{width:200,columns:[]},url:'',splitTables:1,showHeader:true,stripe:true,pager:{pageSize:15}},
               queryConfig:{queryElements:[],containerStyle:{}},
           }
       },

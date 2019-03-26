@@ -1,6 +1,6 @@
 /* eslint-disable */
 <template>
-    <div :class="{readonlyContainer:readonly,editorModule:$attrs.config.editorModule||false}">
+    <div :class = "{readonlyContainer:readonly,editorModule:$attrs.config.editorModule||false}">
         <div class="searchContainer" >
             <div class="elementsContainer">
                 <el-form ref="form" :model="form" :rules="rules" :style="$attrs.config.formStyle||{}" :label-width="$attrs.config.labelWidth||'180px'">
@@ -283,7 +283,6 @@
                       </span>
                       </span>
                 </el-form>
-                {{allElement}}
                 <div v-if="!$attrs.config.noneSaveBtn" :style="$attrs.config.btnContainerStyle||{}">
                     <el-button type="primary" v-if="!readonly" @click="submitForm('form')" :style="$attrs.config.confirmBtnStyle||{width:'220px'}">{{$attrs.config.saveBtnlabel||(form["id"]?"立即更新":'立即创建')}}</el-button>
                     <el-button @click="cancle" :style="$attrs.config.cancleBtnStyle||{width:'220px'}">{{$attrs.config.cancleBtnlabel||'取消'}}</el-button>

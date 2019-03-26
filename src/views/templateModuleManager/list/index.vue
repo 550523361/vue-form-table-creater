@@ -45,7 +45,7 @@
       data(){
           return{
               formatUtil:formatDate,
-              tableListConfig:{colums:[],splitTables:1,operator:{width:200,colums:[]},url:'',selection:false},
+              tableListConfig:{columns:[],splitTables:1,operator:{width:200,columns:[]},url:'',selection:false},
               queryConfig:{queryElements:[]},
               moduleConfig:{editable:'',menuConfig:[]},
               chooseIds:[],
@@ -232,15 +232,15 @@
               //console.log("defaultHandler",params)
               this.moduleConfig.defaultHandler?this.moduleConfig.defaultHandler(params):''
           },
-          initColumn(newData,oldData){
+          initColumn(){
               let that=this;
               let columnWidthAuto=0;
-              this.tableListConfig.colums.map((column,index)=>{
+              this.tableListConfig.columns.map((column,index)=>{
                   if(column.width=="auto"){
                       ++columnWidthAuto;
                   }
 
-                  if(index==(that.tableListConfig.colums.length-1)&&columnWidthAuto==0){
+                  if(index==(that.tableListConfig.columns.length-1)&&columnWidthAuto==0){
                       column.width="auto";
                   }
                   if(column.addEventListener){
@@ -317,7 +317,7 @@
 
               tableListConfig.query=queryParam;
               //console.log("----====>>>>",tableListConfig.query,queryParam)
-              tableListConfig.colums=moduleConfig.columns;
+              tableListConfig.columns=moduleConfig.columns;
 
               queryElements.map(item=>{
                   if(queryParam[item.prop]!=undefined&&queryParam[item.prop]!=""){
@@ -328,7 +328,7 @@
 
               that.queryConfig.queryElements=queryElements;
               that.queryConfig.containerStyle=moduleConfig.containerStyle;
-              moduleConfig.operator.column.map(item=>{
+              moduleConfig.operator.columns.map(item=>{
                   if(!item.click){
                       if(item.confirmDel){
                           item.click=that.deleteRowHandler;
@@ -357,6 +357,11 @@
 
               this.initColumn();
 
+
+              this.$refs.tableList&&this.$refs.tableList.fresh('commonModule');
+          },
+          initWatch(){
+              let that=this;
               this.$watch("moduleConfig.menuConfig",function (newData,oldData) {
                   this.moduleConfig.menuConfig=newData;
                   console.log("*******>menuConfig>>>>>>>>",newData)
@@ -365,7 +370,7 @@
               })
 
               this.$watch("tableListConfig.columns",function (newData,oldData) {
-                  this.initColumn(newData,oldData);
+                 // this.initColumn(newData,oldData);
               },{
                   deep:true
               })
@@ -375,8 +380,8 @@
                   deep:true
               })
 
-              this.$watch("moduleConfig.operator.column",function (newData,oldData) {
-                  moduleConfig.operator.column.map(item=>{
+              this.$watch("moduleConfig.operator.columns",function (newData,oldData) {
+                  that.moduleConfig.operator.columns.map(item=>{
                       //console.log(item)
                       if(!item.click){
                           if(item.confirmDel){
@@ -400,7 +405,6 @@
               this.$watch("moduleConfig.url",function (newData,oldData) {
                   that.tableListConfig.url=newData;
               })
-              this.$refs.tableList&&this.$refs.tableList.fresh('commonModule');
           },
           chooseAllClick(...params){
               //console.log("chooseAllClick",...params);
@@ -467,6 +471,7 @@
       },
       created(){
           this.initPage();
+          this.initWatch();
 
       },
       mounted(){

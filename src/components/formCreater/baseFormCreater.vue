@@ -1,9 +1,10 @@
-<template :key="formKey">
+/* eslint-disable */
+<template>
     <div :class="{readonlyContainer:readonly,editorModule:$attrs.config.editorModule||false}">
         <div class="searchContainer" >
             <div class="elementsContainer">
-                <el-form ref="form" :model="form" :rules="rules" label-width="180px">
-                      <span v-for="(groupName,groupIndex) in Object.keys(elementGroup)" :style="groupedStyle(elementGroup[groupName])">
+                <el-form ref="form" :model="form" :rules="rules" :style="$attrs.config.formStyle||{}" :label-width="$attrs.config.labelWidth||'180px'">
+                      <span v-for="(groupName,groupIndex) in Object.keys(elementGroup)" :key="'grouped_key'+groupIndex+'_'+groupName" :style="groupedStyle(elementGroup[groupName])">
                           <span class="queryElement" :class="{
                               hidden:queryItem.type=='hidden',
                               tabContainer:queryItem.type=='tab',
@@ -281,17 +282,18 @@
                             </template>
                       </span>
                       </span>
-                        <el-form-item v-if="!$attrs.config.noneSaveBtn">
-                            <el-button type="primary" v-if="!readonly" @click="submitForm('form')" :style="$attrs.config.confirmBtnStyle||{width:'220px'}">{{$attrs.config.saveBtnlabel||(form["id"]?"立即更新":'立即创建')}}</el-button>
-                            <!--<el-button @click="resetForm('form')">重置</el-button>-->
-                            <el-button @click="cancle" :style="$attrs.config.cancleBtnStyle||{width:'220px'}">{{$attrs.config.cancleBtnlabel||'取消'}}</el-button>
-                        </el-form-item>
                 </el-form>
+                {{allElement}}
+                <div v-if="!$attrs.config.noneSaveBtn" :style="$attrs.config.btnContainerStyle||{}">
+                    <el-button type="primary" v-if="!readonly" @click="submitForm('form')" :style="$attrs.config.confirmBtnStyle||{width:'220px'}">{{$attrs.config.saveBtnlabel||(form["id"]?"立即更新":'立即创建')}}</el-button>
+                    <el-button @click="cancle" :style="$attrs.config.cancleBtnStyle||{width:'220px'}">{{$attrs.config.cancleBtnlabel||'取消'}}</el-button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 <script>
+
     import backendService from '../remoteService/backendService'
     import validate from './../validate/validate'
     import addInput from './addInput'
@@ -320,6 +322,7 @@
                 queryButtons:[],
                 readonly:false,
                 editorModule:false,
+                tempQueryElements:{}
             }
         },
         methods:{
@@ -333,7 +336,6 @@
                 })
             },
             changeQueryParam:function (data,operate) {
-                    console.log("*********---------->>>>>>changeQueryParam",data,operate,this.rules[data.prop])
                     let casecadeChild=data.casecadeChild;
                     let casecadeGrandsonList=data.casecadeGrandsonList;
                     let cleanMap={};
@@ -352,6 +354,9 @@
                         //console.log("cleanKey",cleanKey)
                         that.$set(that.form,cleanKey,'');
                     })
+
+                    that.$set(that.tempQueryElements,casecadeChild,[])//清空子元素关联临时值
+
                     that.queryElements.map(itemElement=>{
                         if(cleanMap[itemElement.prop]){
                             itemElement.defaultValue="";
@@ -362,6 +367,7 @@
                     this.changeHelp(data,operate);
             },
             changeHelp(prop){
+                let that=this;
                 if(prop.type=="select"){
                     let currentSwitchValue=this.form[prop.prop];
                     if(prop.switchElements){
@@ -434,9 +440,57 @@
                         },(error)=>{
                             console.log(error);
                         });
+                    }else if(prop.extendChild){
+                        console.log("prop",prop)
+                        let form=prop.noNeedAllParams?{}:this.form;
+                        if(prop.casecadeChild.otherParam){
+                            form=Object.assign(form,prop.otherParam)
+                        }
+                        let casecadeChild=prop.extendChild;
+                        if(casecadeChild.dataHandler){
+                            casecadeChild.dataHandler=eval(casecadeChild.dataHandler);
+                        }
+                        if(casecadeChild.extendsProp){
+                            if(casecadeChild.extendsProp instanceof Array){
+                                for(let seq in casecadeChild.extendsProp){
+                                    let key=casecadeChild.extendsProp[seq];
+                                    form[key]=currentSwitchValue;
+                                }
+                            }else{
+                                for(let seq in Object.keys(casecadeChild.extendsProp)){
+                                    let key=Object.keys(casecadeChild.extendsProp)[seq];
+                                    let targetParam=casecadeChild.extendsProp[key];
+                                    console.log("key",key,"targetParam",targetParam,this.form[targetParam])
+                                    form[key]=this.form[targetParam];
+                                }
+                            }
+
+                        }
+                        let item=casecadeChild;
+                        this.queryListData({url:item.dataUrl,form:form,httpMethod:item.httpMethod||"get"}).then((listData)=>{
+                            if(!listData) return;
+                            let resultData=item.dataHandler?item.dataHandler(listData,prop):listData[item.propValueList];
+                            console.log(">>>>resultData",item.prop,resultData)
+                            Object.keys(this.form).filter(key=>key.indexOf("temp_"+item.prop+"#")>=0).forEach(deleteKey=>{
+                                //console.log("deleteKey",deleteKey)
+                                delete this.form[deleteKey];
+                            })
+                            Object.keys(this.rules).filter(key=>key.indexOf("temp_"+item.prop+"#")>=0).forEach(deleteKey=>{
+                                //console.log("deleteRuleKey",deleteKey)
+                                delete this.rules[deleteKey];
+                            })
+                            resultData.forEach(formItem=>{
+                                this.setRules(formItem)
+                            })
+                            this.$set(this.tempQueryElements,prop.prop,resultData);
+                        },(error)=>{
+                            console.log(error);
+                        });
                     }
                 }else if(prop.type="input"){
 
+                }else{
+                    alert("no operate")
                 }
             },
             findCasecadeChild(elementKey){
@@ -563,53 +617,104 @@
             resetForm(formName) {
                 this.$refs[formName].resetFields();
             },
-            setRules(item){
-                let that=this;
-                let validateRules=item.validateRules;//||[{"required":true,maxlength:8,minlength:3}]
-                if(validateRules==null||validateRules==""||validateRules==undefined){
-                    that.rules[item.validateProp]=[];
-                }else{
+            setRules(item) {
+                let that = this;
+                let validateRules = item.validateRules; //||[{"required":true,maxlength:8,minlength:3}]
+                if (
+                    validateRules == null ||
+                    validateRules == "" ||
+                    validateRules == undefined
+                ) {
+                    that.rules[item.validateProp] = [];
+                } else {
                     //console.log("typeof validateRules",typeof validateRules)
-                    if(typeof validateRules === "string"){
-                        validateRules=JSON.parse(validateRules);
+                    if (typeof validateRules === "string") {
+                        validateRules = JSON.parse(validateRules);
                     }
-                    if(validateRules.length>0){
-                        let errorMessageMap=that.validate.errorMessageMap;
-                        let allRuleInOne={}
-                        let allErrorInOne={}
-                        let itemValidatorFunctions=[];
-                        validateRules.forEach(rule=>{
-                            if(typeof rule.validator === "function"){
-                                itemValidatorFunctions.push(rule);
-                            }else{
-                                Object.keys(rule).forEach(validateItem=>{
-                                    let tipMessage=errorMessageMap[validateItem];
-                                    if(typeof tipMessage == "function"){
-                                        allErrorInOne[validateItem]=errorMessageMap[validateItem]({label:item.label,length:rule[validateItem]});
-                                    }else{
+                    if (validateRules.length > 0) {
+                        let errorMessageMap = that.validate.errorMessageMap;
+                        let allRuleInOne = {};
+                        let allErrorInOne = {};
+                        let itemValidatorFunctions = [];
+                        validateRules.forEach(rule => {
+                            if (typeof rule.validator === "function") {
+                                let wrapValidatorFunction = {
+                                    trigger: rule.trigger || "change",
+                                    allErrorInOne: allErrorInOne,
+                                    validator: (validator, value, callback) => {
+                                        let errorMessage = rule.validator(
+                                            validator,
+                                            value,
+                                            callback,
+                                            validate,
+                                            allRuleInOne,
+                                            that.form
+                                        );
+                                        errorMessage &&
+                                        errorMessage.then(data => {
+                                            if (data.code == 1) {
+                                                callback();
+                                            } else {
+                                                callback(
+                                                    new Error(
+                                                        (validator.allErrorInOne &&
+                                                            validator.allErrorInOne[data.errorCode]) ||
+                                                        data.msg
+                                                    )
+                                                );
+                                            }
+                                        });
+                                    }
+                                };
+                                itemValidatorFunctions.push(wrapValidatorFunction);
+                            } else {
+                                Object.keys(rule).forEach(validateItem => {
+                                    let tipMessage = errorMessageMap[validateItem];
+                                    if (typeof tipMessage == "function") {
+                                        allErrorInOne[validateItem] = errorMessageMap[validateItem]({
+                                            label: item.label,
+                                            length: rule[validateItem]
+                                        });
+                                    } else {
                                         //console.log("***************",rule)
-                                        allErrorInOne[validateItem]=errorMessageMap[validateItem];
+                                        allErrorInOne[validateItem] = errorMessageMap[validateItem];
                                     }
-                                })
-                                allRuleInOne=Object.assign(allRuleInOne,rule);
+                                });
+                                allRuleInOne = Object.assign(allRuleInOne, rule);
                             }
-                        })
-                        let tempValidator={
-                            trigger:'change',
-                            allErrorInOne:allErrorInOne,
-                            validator:(validator,value,callback)=>{
+                        });
+                        let tempValidator = {
+                            trigger: "change",
+                            allErrorInOne: allErrorInOne,
+                            validator: (validator, value, callback) => {
                                 //console.log("addInputList",validator,value)
-                                let errorMessage=validate.validator(value,allRuleInOne,that.form);
-                                errorMessage.then(data=>{
-                                    if(data.code==1){
+                                let errorMessage = validate.validator(
+                                    value,
+                                    allRuleInOne,
+                                    that.form
+                                );
+                                errorMessage.then(data => {
+                                    if (data.code == 1) {
                                         callback();
-                                    }else{
-                                        callback(new Error(validator.allErrorInOne&&validator.allErrorInOne[data.errorCode]||data.msg));
+                                    } else {
+                                        callback(
+                                            new Error(
+                                                (validator.allErrorInOne &&
+                                                    validator.allErrorInOne[data.errorCode]) ||
+                                                data.msg
+                                            )
+                                        );
                                     }
-                                })
-                            },
-                        }
-                        that.rules[item.validateProp||item.prop]=[allRuleInOne["required"]?{required:true,message:allErrorInOne["required"]}:{},...itemValidatorFunctions,tempValidator];
+                                });
+                            }
+                        };
+                        that.rules[item.validateProp || item.prop] = [
+                            allRuleInOne["required"]
+                                ? { required: true, message: allErrorInOne["required"] }
+                                : {},
+                            ...itemValidatorFunctions,
+                            tempValidator
+                        ];
                     }
                 }
             },
@@ -753,11 +858,8 @@
             dataBus(props,data){
                 //console.log("************",props,data)
                 this.form[props.prop]=data&&data.join("||||")||"";
-                if(props.type=='addImages'){
-                    props.data=that.form[item.prop];
-                }
             },
-            initPage(param){
+            initPage(){
                 let that=this;
 
                 let config=this.$attrs.config;
@@ -789,10 +891,7 @@
                         item.dataBus=that.dataBus;
                         if(item.type=='addImages'){
                             item.imagesListConfig.dataBus=that.dataBus;
-                          //  console.log("that.form[item.prop]   >>>>addImages.>>>>addImages",that.form[item.prop])
-                            //item.imagesListConfig.data=that.form[item.prop];
                         }
-                        // that.$set(that.form,item.propsList,item.default||'');
                     }
                 });
                 this.initQueryElement();
@@ -833,10 +932,8 @@
                         }
                     }
                 });
-                console.log(">>11111>>>allCheckResult  ",allCheckResult)
                 return allCheckResult.filter(item=>item==true).length==0
-
-            }
+            },
         },
         created() {
             let that=this;
@@ -860,8 +957,27 @@
         },
         computed:{
             elementGroup(){
-                return _.groupBy(this.$attrs.config.queryElements,item=>item.groupedName)
-            }
+                this.$attrs.config.queryElements.map((item,seq)=>{item.order=seq*10000})
+                let allElements=_.flatten(Object.values(this.tempQueryElements)).concat(this.$attrs.config.queryElements);
+                allElements=_.sortBy(allElements,item=>item.order);
+                return _.groupBy(allElements,item=>item.groupedName)
+            },
+            allElement(){
+                /*let allElements=_.flatten(Object.values(this.elementGroup));
+                allElements=_.sortBy(allElements,item=>item.order);
+                let cloneAllElements=_.cloneDeep(allElements);
+
+                cloneAllElements.map(item=>{
+                    Object.keys(item).forEach(key=>{
+                        if(key.indexOf("Handler")){
+                            item[key]=item[key].toString();
+                        }
+                    })
+                })*/
+
+                return [];
+            },
+
         }
     }
 </script>

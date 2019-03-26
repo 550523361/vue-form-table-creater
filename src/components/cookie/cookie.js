@@ -16,4 +16,4 @@ function getCookie(cname) {
     return "";
 }
 
-export {setCookie,getCookie};
+export default {setCookie,getCookie};

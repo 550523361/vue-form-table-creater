@@ -1,3 +1,4 @@
+/* eslint-disable */
 import baseTableConfig from '../../../components/tableList/TabListConfig'
 let tableListConfig = JSON.parse(JSON.stringify(baseTableConfig));
 let baseBtnStyle = tableListConfig.baseBtnStyle;
@@ -1290,7 +1291,7 @@ function getConfig() {
                 }
             },
         },
-        createTableList: { //创建列表功能页面
+        createTable: { //创建列表功能页面
             queryElements: [
                 {
                     label: "注意:",
@@ -1528,9 +1529,15 @@ function getConfig() {
             },
             dataBus: (context, configInfo, elementInfo, elementTypeInfo) => {
                 //console.log("*******configInfo,elementInfo*****",context,configInfo,elementInfo,elementTypeInfo);
-                if (elementTypeInfo.functionType =="inputElement") {
-                    context.formCreateConfig.queryElements.push(elementInfo);
-                }
+                //if (elementTypeInfo.functionType =="inputElement") {
+                    let copyElementInfo=JSON.parse(JSON.stringify(elementInfo))
+                    Object.keys(copyElementInfo).map(prop=>{
+                        if(prop.indexOf("Handler")!=-1){
+                            copyElementInfo[prop]=eval(copyElementInfo[prop])
+                        }
+                    })
+                    context.formCreateConfig.queryElements.push(copyElementInfo);
+                //}
             }
         },
     }

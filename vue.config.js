@@ -7,6 +7,11 @@ module.exports ={
                 ws:true,
                 changeOrigin:true
             }
-        }
-    }
+        },
+        overlay: {
+            warnings: false,
+            errors: false
+          }
+    },
+    lintOnSave:true
 }

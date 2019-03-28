@@ -356,6 +356,7 @@
     align-items: stretch;
     background: #fff;
     text-align: center;
+    position: relative;
   }
   .frameGroupContainer{
     border: 0px solid #aaa;
@@ -400,6 +401,13 @@
     border-radius: 4px;
     padding: 7px 17px;
     color: #fff;
+  }
+  .frameGroupContainer .addBtnContainer{
+      cursor: pointer;
+      background: #bfcbd9;
+      border-radius: 4px;
+      padding: 7px 17px;
+      color: #fff;
       position: absolute;
       bottom:10px;
       left:50%;
@@ -452,69 +460,8 @@
     margin-bottom: 10px;
   }
 
-  .preViewContainer{
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    align-items: flex-start;
-    border:0px solid #32a;
-    width: 700px;
-    margin-top: 20px;
-    padding-top: 10px;
 
-    box-shadow: 1px 1px 10px;
-    margin-bottom: 20px;
-  }
 
-  .preViewItemContainer{
-    background: #fff;
-    margin-bottom: 10px;
-    min-height: 120px;
-    border: 1px solid #e8e8e8;
-    border-radius: 5px;
-    position: relative;
-    width: 130px;
-    padding-top: 10px;
-    flex-shrink: 0;
-
-  }
-
-  .machineContainer{
-    background: url(https://img.yzcdn.cn/upload_files/2018/05/25/FhNoqgRgCGcyD6M1ehLO13ii9WjO.jpg?imageView2/2/w/580/h/580/q/75/format/jpg) no-repeat center center;
-    background-size: 880px auto;
-    height: 800px;
-    position: relative;
-    text-align: center;
-    width: 750px;
-  }
-  .carouselContainer{
-    background: transparent;
-    width: 437px;
-    height: 262px;
-    transform: translateY(111px);
-    display: inline-block;
-  }
-  .el-carousel,.el-carousel__container{
-    height: 100%;
-  }
-  .carouselImageContainer{
-    text-align: center;
-    background: #fff;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    align-items: center;
-  }
-  .carouselImageContainer img{
-    width: 100%;
-    height: 100%;
-  }
-  .el-carousel__indicator{
-    display: none;
-  }
 
   /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
   ::-webkit-scrollbar
@@ -554,24 +501,7 @@
     top: 14px;
   }
 
-  .chooseItem{
-      display: none;
-  }
-  .chooseItem + label{
-      background: #fff url('http://img-steward-test.goodaa.com.cn/47b8be2b6fd441eabd319abaf9677115.png') no-repeat !important;
-      background-position: 3px 1px!important;
-      background-size: 51px 23px!important;
-  }
-  .chooseItem:checked + label{
-      background: #fff url('http://img-steward-test.goodaa.com.cn/47b8be2b6fd441eabd319abaf9677115.png') no-repeat !important;
-      background-position: -27px 1px!important;
-      background-size: 52px 23px!important;
-  }
-  .checkItem{
-      display: inline-block;
-      width: 28px;
-      height: 28px;
-  }
+
 </style>
 
 <!--

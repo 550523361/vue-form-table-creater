@@ -4,7 +4,7 @@
             <div><span style="color: #00a2d4">盒子演示数字加减法</span></div>
         </div>
         <div class="frameContainer">
-            <div  :index="index" v-for="(frame,index) in framesList" v-bind:key="index+'group'"   disabled3rag="true3" v-dragging='{item:{group:index,list:frame,target:"container",canPush:((frame||[]).filter(item=>item.canDrag===false).length==0)},list:[],group:index}'>
+            <div  :index="index" v-for="(frame,index) in framesList" v-bind:key="index+'group'"   disabledrag="true3" v-dragging='{item:{group:index,list:frame,target:"container",canPush:((frame||[]).filter(item=>item.canDrag===false).length==0)},list:[],group:index}'>
                 <div class="titleLabel" style="position: relative;">第<span style="color: #f00">{{index+1}}</span>盒子 有{{frame.length}}个苹果
                     <span @click="moveFrame($event,frame,index)" style="width:20px;height:20px;border-radius: 50%;text-align: center;display:inline-block;width: 120px;cursor: pointer;color: #f00;">删除盒子</span>
                 </div>
@@ -327,6 +327,7 @@
 </script>
 
 <style scoped>
+
   #container {
     height: 300px;
     width:800px;
@@ -347,16 +348,20 @@
           transform: rotateY(360deg);
       }
   }
-  .popContainer{
-  }
   .frameContainer{
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: stretch;
-    background: #fff;
     text-align: center;
     position: relative;
+    flex-wrap: wrap;
+    width: 80%;
+    margin: 0px auto;
+  }
+  .frameContainer > div{
+      width: 50%;
+      margin-top: 20px;
   }
   .frameGroupContainer{
     border: 0px solid #aaa;
@@ -368,7 +373,7 @@
     box-shadow: 2px 2px 6px #8391a5;
     overflow-y: auto;
     min-width: 165px;
-    width: 400px;
+    max-width: 100%;
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
@@ -377,6 +382,9 @@
     position: relative;
     padding-bottom: 60px;
   }
+  
+
+  
   .itemContainer{
     margin-bottom: 10px;
     border: 0px solid #e8e8e8;
@@ -502,6 +510,22 @@
   }
 
 
+
+</style>
+<style>
+    html,body{
+        min-height: 100%;
+    }
+    body{
+        background: linear-gradient(-180deg, #007bfb,#ffffff,#67c23a)!important;
+        min-height: 100%;
+    }
+    @media screen and (max-width:900px){
+        .frameContainer > div{
+            width: 100%!important;
+        }
+
+    }
 </style>
 
 <!--

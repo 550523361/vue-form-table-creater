@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Show from './views/Show.vue'
+import HcFj from './views/HcFj.vue'
 import movedNumber from './views/movedNumber/index.vue'
 import CompanyView from './views/baseInfo/index.vue'
 
@@ -30,6 +31,11 @@ export default new Router({
       path:'/number/:sum?',
       name:'number',
       component:Show
+    },
+    {
+      path:'/hcfj/:sum?',
+      name:'HcFj',
+      component:HcFj
     },
     {
       path:'/box/:sum?',

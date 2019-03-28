@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Show from './views/Show.vue'
+import movedNumber from './views/movedNumber/index.vue'
 import CompanyView from './views/baseInfo/index.vue'
 
 /*功能模块模板*/
@@ -21,14 +22,6 @@ export default new Router({
       component: CompanyView
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
-    },
-    {
         path: '/commonModule/:moduleName/:param1?/:param2?/:param3?/:param4?/:param5?',
         name: "templateModuleManagerList",
         component: templateModuleManagerList,
@@ -37,6 +30,11 @@ export default new Router({
       path:'/number/:sum?',
       name:'number',
       component:Show
+    },
+    {
+      path:'/box/:sum?',
+      name:'movedNumber',
+      component:movedNumber
     }
   ]
 })

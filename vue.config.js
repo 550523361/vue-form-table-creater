@@ -1,4 +1,5 @@
 module.exports ={
+    publicPath:'',
     devServer:{
         //proxy:'http://test-conbow-backend.goodaa.com.cn',
         proxy:{

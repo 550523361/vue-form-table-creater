@@ -1454,7 +1454,7 @@ function getConfig() {
             ],
             operator: {
                 width: 320,
-                column: [
+                columns: [
                     //{"prop":"state",label:"",map:{2:'关闭',3:'开启'},viewHandler:true}
                 ]
             },
@@ -1535,12 +1535,25 @@ function getConfig() {
                 //console.log("*******configInfo,elementInfo*****",context,configInfo,elementInfo,elementTypeInfo);
                 //if (elementTypeInfo.functionType =="inputElement") {
                     let copyElementInfo=JSON.parse(JSON.stringify(elementInfo))
+
+                console.log(elementInfo)
+
                     Object.keys(copyElementInfo).map(prop=>{
                         if(prop.indexOf("Handler")!=-1){
                             copyElementInfo[prop]=eval(copyElementInfo[prop])
                             console.log("prop",prop)
                         }
                     })
+
+                    if(copyElementInfo.type=='upload'){
+                        if(copyElementInfo.imgUploadConfig&&copyElementInfo.imgUploadConfig.beforeUpload){
+                            copyElementInfo.imgUploadConfig.beforeUpload=eval(copyElementInfo.imgUploadConfig.beforeUpload)
+                        }
+                        if(copyElementInfo.imgUploadConfig&&copyElementInfo.imgUploadConfig.successUpload){
+                            copyElementInfo.imgUploadConfig.successUpload=eval(copyElementInfo.imgUploadConfig.successUpload)
+                        }
+                    }
+
                     context.formCreateConfig.queryElements.push(copyElementInfo);
                 //}
             }

@@ -470,7 +470,6 @@
                                 ]
                             },null,4)
                         },
-
                         imageUpload:{
                             name:'图片上传',
                             options:JSON.stringify({
@@ -488,6 +487,44 @@
                                 ]
                             },null,4)
                         },
+                        fileUpload:{
+                            name:'文件上传',
+                            options:JSON.stringify({
+                                label:'应用APK',
+                                name:'文件上传',
+                                type:'upload',
+                                placeholder:'应用APK',
+                                defaultValue:'',
+                                span:24,
+                                value:'',
+                                prop:'apkUrl',
+                                tip:'请上传高清图片作为应用ICON108*108像素，仅支持PNG格式，大小不超过300KB。',
+                                imgUploadConfig:{
+                                    notImage:true,
+                                    beforeUpload:`
+                                        (...params)=>{
+                                        //console.log(">>>>>",...params);
+                                        let file=params[0];
+                                        const AndroidAppType ='application/vnd.android.package-archive';
+                                        /*if(!(file.type==AndroidAppType||/\\.apk$/.test(file.name))){
+                                            return Promise.reject({code:0,msg:'请选择apk文件'})
+                                        }
+                                        if(file.size>500*1024*1024){
+                                            return Promise.reject({code:0,msg:'应用不能大于500Mb'})
+                                        }*/
+                                        return Promise.resolve({code:1,msg:'success'})
+                                    }
+                                    `,
+                                    successUpload:`
+                                        (response,file,queryItem,form)=>{
+                                        //console.log(">>>>>",response,file,queryItem,form);
+                                        form["appSizeView"]=(file.size/1024/1024).toFixed(2)+'Mb';
+                                        form["appSize"]=file.size;
+                                        return Promise.resolve({code:1,msg:'success',data:response.data.fileUrls[0]})
+                                    }
+                                    `
+                                },
+                            },null,4)},
                     },
                     getLine:{
                         name:'分割线',

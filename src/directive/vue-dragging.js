@@ -1,3 +1,4 @@
+/* eslint-disable */
 class DragData {
     constructor () {
         this.data = {}

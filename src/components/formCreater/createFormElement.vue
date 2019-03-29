@@ -1,26 +1,18 @@
 <template>
     <div class="addElement">
-        <div style="padding: 15px 5px;background: #f0f0f0;">
-            <el-radio v-model="type" :label="element" style="margin-left: 0px;"  v-for="(element,index) in Object.keys(elementConfig)" :key="index+'_radio_'+element" >{{elementConfig[element].name}}</el-radio>
+        <div style="padding: 15px 5px;background:linear-gradient(-180deg, rgb(102, 177, 255), #3483de59, #228dfdad);">
+            <el-radio v-model="type" :label="element" style="margin-left: 0px;margin:10px;" border  v-for="(element,index) in Object.keys(elementConfig)" :key="index+'_radio_'+element" >{{elementConfig[element].name}}</el-radio>
         </div>
-        <div v-for="(element,index) in Object.keys(elementConfig)" v-if="type==element" style="background:#dfe6ec;padding: 10px 5px;"  :key="index+''+element">
-            <span v-if="elementConfig[element][elementOption].name" v-for="(elementOption,index) in Object.keys(elementConfig[element])" :key="index+'_radio_option_'+element" class="chooseItemElementContainer">
-                <div v-if="elementConfig[element][elementOption].name=='br'"  style="background: transparent;height: 15px;"></div>
-                <template v-else="elementConfig[element][elementOption].name=='br'"  style="background: #f0a;">
-                    <el-radio v-model="elementItemType"  :label="elementOption"   >{{elementConfig[element][elementOption].name}}</el-radio>
-                </template>
-            </span>
-            <div style="margin-top: 15px;background: transparent"></div>
-            <div class="operateContainer">
-                <span v-for="(elementType,index) in Object.keys(elementConfig[element])" class="optionsElementContainer" v-if="element==type&&elementItemType==elementType"  :key="index+''+element+'_'+elementType">
-                    <el-input v-model="elementConfig[type][elementItemType].options" type="textarea" :rows="10" @keyup.enter.native="saveInput" ></el-input>
-
-                    <div style="font-size: 12px;color: #f00;margin-top: 5px;">{{elementConfig[element].name}}==>{{elementConfig[element][elementType].name}}--{{elementType}}---{{type}}--->{{elementItemType}}</div>
-                </span>
-                <el-button type="success" style="margin-top: 15px;" @click="addQueryElement">添加元素</el-button>
-            </div>
-            <div style="font-size: 12px;" v-html="showTemplate(templateHtml)">
-            </div>
+        <div style="padding:10px;background:linear-gradient(-180deg, rgb(102, 177, 255), #c0c4cc, rgb(103, 194, 58)) !important;">
+            <el-radio v-for="(element,index) in currentChoosed"  :key="index" v-model="elementItemType"  border style="margin-bottom:15px;margin-right:15px;margin-top:10px;" :label="element">{{elementConfig[type][element].name}}</el-radio>
+        </div>
+        <div class="operateContainer" style="background:#ddd" v-if="elementConfig[type][elementItemType]">
+                    <span class="optionsElementContainer">
+                            <el-input v-model="elementConfig[type][elementItemType].options" text-color="#fff" type="textarea" :rows="25" style="font-size:12px;" @keyup.enter.native="saveInput" ></el-input>
+                    </span>
+                    <el-button type="success" style="margin-top: 15px;" @click="addQueryElement">添加元素</el-button>
+                </div>
+                <div style="font-size: 12px;background:linear-gradient(-180deg, #66b1ff,rgba(0,0,0,.1),#67c23a)!important;margin-top:20px;" v-html="showTemplate(templateHtml)">
         </div>
     </div>
 </template>
@@ -39,6 +31,26 @@
                         name:'输入框',
                         input:{
                             name:'输入框有验证功能',
+                            testProp:`
+                                {
+                                    label:'属性名称',
+                                    type:'input',
+                                    placeholder:'属性名称占位',
+                                    defaultValue:'',
+                                    value:'',
+                                    prop:'propName',
+                                    subText:'*最多15个字',
+                                    span:18,
+                                    style:{
+                                        display:'inline-block',
+                                        width:'auto',
+                                        minWidth:'400px'
+                                        },
+                                    viewHandler(...params){
+                                        console.log(...params)    
+                                    }    
+                                },
+                            `,
                             options:JSON.stringify({
                                 label:'属性名称',
                                 type:'input',
@@ -621,122 +633,122 @@
                     },
                 },
                 templateHtml:`
-                                    {
-                                        label:'属性名称',//属性名称
-                                        prop:'prop',//属性值 如name、 age、
-                                        type:'input',//字段类型 如 input,datetimerange,chooseBtn,addInput,upload,import,
-                                        inputType:'textarea',addImages,cascader,//input类型是否显示为多行文本输入
-                                        rows:'3',//显示多行文本行高
-                                        placeholder:'',//属性名称占位
-                                        defaultValue:'',//默认值
-                                        readonly:false,//是否为只读
-                                        value:'',//值
-                                        html:true,//是否显示html方式
-                                        viewHandler:(proValue,formValue){//<div style="display:inline-block;color:#f00;font-size:12px;">回调处理函数参数默认为</div>
-                                            console.log("aaa")
-                                        },
-                                        subText:'',//右侧提示文字  比如字数提示 用户名必须20个字以内 可以为html
-                                                   //<span style="color: #f0a">红色的字体</span>
-                                        style:{ //元素样式控制
-                                            display:'inline-block',
-                                            width:'auto',
-                                            minWidth:'400px'
-                                        },
-                                        span:18,//元素容器宽度现在 1-24,
-                                        validateRules:[//校验规则
-                                            { //对象配置模式
-                                                required:true
-                                            },
-                                            { //函数配置模式
-                                                validator:(
-                                                                validator,//校验所有规则
-                                                                value,//当前值
-                                                                callback,//处理完成之后的回调 如 next()
-                                                                validate, //校验辅助函数 有各种基础校验 如  mobile,数字类型,email,version,password,
-                                                                                        //required,maxvalue,minvalue,maxlength,minlength,
-                                                                allRuleInOne,//规则打包之后对象
-                                                                that.form,//当前表单所有值 为做关联校验时候使用
-                                                            )=>{//函数模式
-                                                                    let errorMessage=validate.validator(value,{required:true,maxlength:15});
-                                                                    errorMessage.then(data=>{
-                                                                        if(data.code==1){
-                                                                            callback();
-                                                                        }else{
-                                                                            callback(new Error(data.msg));
-                                                                        }
-                                                                    })
-                                                                },
-                                                trigger:"change"//校验函数触发方式 blur,change,click
-                                            }
+                    {
+                        label:'属性名称',//属性名称
+                        prop:'prop',//属性值 如name、 age、
+                        type:'input',//字段类型 如 input,datetimerange,chooseBtn,addInput,upload,import,
+                        inputType:'textarea',addImages,cascader,//input类型是否显示为多行文本输入
+                        rows:'3',//显示多行文本行高
+                        placeholder:'',//属性名称占位
+                        defaultValue:'',//默认值
+                        readonly:false,//是否为只读
+                        value:'',//值
+                        html:true,//是否显示html方式
+                        viewHandler:(proValue,formValue){//<div style="display:inline-block;color:#f00;font-size:12px;">回调处理函数参数默认为</div>
+                            console.log("aaa")
+                        },
+                        subText:'',//右侧提示文字  比如字数提示 用户名必须20个字以内 可以为html
+                                    //<span style="color: #f0a">红色的字体</span>
+                        style:{ //元素样式控制
+                            display:'inline-block',
+                            width:'auto',
+                            minWidth:'400px'
+                        },
+                        span:18,//元素容器宽度现在 1-24,
+                        validateRules:[//校验规则
+                            { //对象配置模式
+                                required:true
+                            },
+                            { //函数配置模式
+                                validator:(
+                                                validator,//校验所有规则
+                                                value,//当前值
+                                                callback,//处理完成之后的回调 如 next()
+                                                validate, //校验辅助函数 有各种基础校验 如  mobile,数字类型,email,version,password,
+                                                                        //required,maxvalue,minvalue,maxlength,minlength,
+                                                allRuleInOne,//规则打包之后对象
+                                                that.form,//当前表单所有值 为做关联校验时候使用
+                                            )=>{//函数模式
+                                                    let errorMessage=validate.validator(value,{required:true,maxlength:15});
+                                                    errorMessage.then(data=>{
+                                                        if(data.code==1){
+                                                            callback();
+                                                        }else{
+                                                            callback(new Error(data.msg));
+                                                        }
+                                                    })
+                                                },
+                                trigger:"change"//校验函数触发方式 blur,change,click
+                            }
 
-                                        ],
-                                        formData:[],//当type为addInput时 给属性自动赋值,
-                                        dataBus:true,//是否需要数据传输 适合自定义类元素有自己的处理逻辑 处理完成后同步数据函数
-                                        containerStyle:{//属性元素容器 适用于多个属性排列在一行等 有单独布局的情况
-                                            width:'auto'
-                                        },
-                                        groupedName:'默认分组',//分组名称
-                                        groupedStyle:{//分组样式对象  可以将多个不同的属性进行分组 以便更清晰明了的显示
-                                            display:'flex',
-                                            flexDirection:'row',
-                                            justContent:'flex-start',
-                                            alignItems:'center',
-                                            backgroundColor:'linear-gradient(180deg,#67c23a61, #409eff8c)',
-                                            width:'80%',
-                                            marginLeft:'10%',
-                                            padding: '20px 0px',
-                                        },
-                                        imagesListConfig:{//图片上传时候的各种校验
-                                            imageConfig:{//简单的高宽大小校验
-                                                //size:2.45*1024*1024,
-                                                width:430,
-                                                height:270
-                                            },
-                                            readonly:false,
-                                            /*validatorHandler:validatorHandler,*///函数式的校验你自己来决定是否能通过
-                                            data:[],
-                                            dataBus:true,//标记是否需要数据传输
-                                            maxNum:5,//多图上传 最大能上传个数
-                                            tip:'请上传高清图片430px*270px，仅支持PNG格式。最多5个图片',//多图上传的提示性文字
-                                            prop:'showUrls'
-                                        },
-                                        watch:{//级联或关联属性 观察其它属性的配置对象
-                                            props:["enterpriseName"],
-                                            watchValue:{
-                                                enterpriseName:{//枚举其它属性的某些值可以显示或隐藏
-                                                    "好好啊":true,//当观察属性enterpriseName为好好啊的时候可以显示
-                                                    "ccc":true,
-                                                    "看不见":false//当观察属性enterpriseName为"看不见"的时候不显示
-                                                },
-                                                dddd: (...data)=>{//函数式校验
-                                                    console.log(">>>>>",...data)
-                                                    return false
-                                                },
-                                                ee:null//无效的配置会被忽略掉
-                                            }
-                                        },
-                                        dataHandler(auditTypeName,...params){//根据数据动态显示内容
-                                            return <div style="color: #f00;font-size: 14px;background: transparent;color:#a00;margin-bottom: 20px;">hahahah</div>
-                                        },
-                                        cascaderOptions:[],//级联对象显示数据源
-                                        itemLabel:'label',//级联对象的显示名称
-                                        itemValue:'areaId',//级联对象的显示值
-                                        rightBtn:"<span style='border:1px solid green;padding:0px 15px;text-align:center;border-radius:5px;cursor: pointer;display:inline-block;margin-left:15px;'>获取验证码</span>",
-                                        rightBtnClick:data=>{//右侧需要有按钮的点击处理函数
-                                            return '';
-                                        },
-                                        dataUrl:'/jump/getJumpType.json',//下拉选择数据接口地址
-                                        initQuery:true,//是否需要初始化
-                                        dataHandler:\`(data)=>{//数据处理函数 下拉显示 label 或name  value或code
-                                            console.log(data)
-                                            (data.data||[]).map(item=>{
-                                                item.label=item.desc;
-                                                item.value=item.code;
-                                            })
-                                            return data.data
-                                        }\`,
-                                    }
-                                `,
+                        ],
+                        formData:[],//当type为addInput时 给属性自动赋值,
+                        dataBus:true,//是否需要数据传输 适合自定义类元素有自己的处理逻辑 处理完成后同步数据函数
+                        containerStyle:{//属性元素容器 适用于多个属性排列在一行等 有单独布局的情况
+                            width:'auto'
+                        },
+                        groupedName:'默认分组',//分组名称
+                        groupedStyle:{//分组样式对象  可以将多个不同的属性进行分组 以便更清晰明了的显示
+                            display:'flex',
+                            flexDirection:'row',
+                            justContent:'flex-start',
+                            alignItems:'center',
+                            backgroundColor:'linear-gradient(180deg,#67c23a61, #409eff8c)',
+                            width:'80%',
+                            marginLeft:'10%',
+                            padding: '20px 0px',
+                        },
+                        imagesListConfig:{//图片上传时候的各种校验
+                            imageConfig:{//简单的高宽大小校验
+                                //size:2.45*1024*1024,
+                                width:430,
+                                height:270
+                            },
+                            readonly:false,
+                            /*validatorHandler:validatorHandler,*///函数式的校验你自己来决定是否能通过
+                            data:[],
+                            dataBus:true,//标记是否需要数据传输
+                            maxNum:5,//多图上传 最大能上传个数
+                            tip:'请上传高清图片430px*270px，仅支持PNG格式。最多5个图片',//多图上传的提示性文字
+                            prop:'showUrls'
+                        },
+                        watch:{//级联或关联属性 观察其它属性的配置对象
+                            props:["enterpriseName"],
+                            watchValue:{
+                                enterpriseName:{//枚举其它属性的某些值可以显示或隐藏
+                                    "好好啊":true,//当观察属性enterpriseName为好好啊的时候可以显示
+                                    "ccc":true,
+                                    "看不见":false//当观察属性enterpriseName为"看不见"的时候不显示
+                                },
+                                dddd: (...data)=>{//函数式校验
+                                    console.log(">>>>>",...data)
+                                    return false
+                                },
+                                ee:null//无效的配置会被忽略掉
+                            }
+                        },
+                        dataHandler(auditTypeName,...params){//根据数据动态显示内容
+                            return <span style="color: #f00;font-size: 14px;background: transparent;color:#a00;margin-bottom: 20px;">hahahah</span>
+                        },
+                        cascaderOptions:[],//级联对象显示数据源
+                        itemLabel:'label',//级联对象的显示名称
+                        itemValue:'areaId',//级联对象的显示值
+                        rightBtn:"<span style='border:1px solid green;padding:0px 15px;text-align:center;border-radius:5px;cursor: pointer;display:inline-block;margin-left:15px;'>获取验证码</span>",
+                        rightBtnClick:data=>{//右侧需要有按钮的点击处理函数
+                            return '';
+                        },
+                        dataUrl:'/jump/getJumpType.json',//下拉选择数据接口地址
+                        initQuery:true,//是否需要初始化
+                        dataHandler:\`(data)=>{//数据处理函数 下拉显示 label 或name  value或code
+                            console.log(data)
+                            (data.data||[]).map(item=>{
+                                item.label=item.desc;
+                                item.value=item.code;
+                            })
+                            return data.data
+                        }\`,
+                    }
+                `,
             }
         },
         methods:{
@@ -771,6 +783,12 @@
             },
             showTemplate(template){
                 return (template||'').replace(/\n/g,"<br/>").replace(/\s{4}/g,"<span style='display: inline-block;width: 10px;'></span>")
+            }
+
+        },
+        computed:{
+            currentChoosed(){
+                return Object.keys(this.elementConfig[this.type]).filter((item,seq)=>seq)
             }
         },
         created() {

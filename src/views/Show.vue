@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
     <div style="">
         <span style="font-size:2rem;font-weight:600;display:inline-block;margin:15px auto;">数字<span style="color:#0aa">{{movedData.length+sourceData.length}}</span>的分解与合成</span>
